@@ -1,21 +1,21 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Building2, Wrench, MessageCircle, Bell, Receipt, FileText } from 'lucide-react';
+import { Home, Building2, MessageCircle, Bell, User, CreditCard } from 'lucide-react';
 
 const landlordTabs = [
-  { path: '/', icon: Home, label: 'Home' },
-  { path: '/properties', icon: Building2, label: 'Properties' },
-  { path: '/maintenance', icon: Wrench, label: 'Repairs' },
-  { path: '/messages', icon: MessageCircle, label: 'Messages' },
-  { path: '/notifications', icon: Bell, label: 'Alerts' },
+  { path: '/', label: 'Dashboard', icon: Home },
+  { path: '/properties', label: 'Properties', icon: Building2 },
+  { path: '/messages', label: 'Messages', icon: MessageCircle },
+  { path: '/notifications', label: 'Notifications', icon: Bell },
+  { path: '/settings', label: 'Settings', icon: User },
 ];
 
 const tenantTabs = [
-  { path: '/', icon: Home, label: 'Home' },
-  { path: '/rent', icon: Receipt, label: 'Rent' },
-  { path: '/repairs', icon: Wrench, label: 'Repairs' },
-  { path: '/messages', icon: MessageCircle, label: 'Messages' },
-  { path: '/notifications', icon: Bell, label: 'Alerts' },
+  { path: '/', label: 'Home', icon: Home },
+  { path: '/rent', label: 'Payments', icon: CreditCard },
+  { path: '/messages', label: 'Messages', icon: MessageCircle },
+  { path: '/notifications', label: 'Notifications', icon: Bell },
+  { path: '/settings', label: 'Profile', icon: User },
 ];
 
 export default function BottomNav({ role }) {
@@ -23,20 +23,25 @@ export default function BottomNav({ role }) {
   const tabs = role === 'landlord' ? landlordTabs : tenantTabs;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 safe-area-bottom">
-      <div className="flex items-center justify-around max-w-lg mx-auto h-16 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-border">
+      <div className="flex items-center justify-around max-w-lg mx-auto h-16 px-1">
         {tabs.map(({ path, icon: Icon, label }) => {
           const isActive = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
           return (
             <Link
               key={path}
               to={path}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
-              }`}
+              className="flex flex-col items-center gap-1 flex-1 py-2 group"
             >
-              <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">{label}</span>
+              <div className={`p-1.5 rounded-xl transition-all duration-200 ${isActive ? 'bg-primary/10' : 'group-active:bg-muted'}`}>
+                <Icon
+                  className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+                  strokeWidth={isActive ? 2.5 : 1.8}
+                />
+              </div>
+              <span className={`text-[10px] font-medium transition-colors duration-200 leading-none ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                {label}
+              </span>
             </Link>
           );
         })}
