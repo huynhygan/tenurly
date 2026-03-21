@@ -2,30 +2,63 @@ import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
-import { DollarSign, TrendingUp, AlertTriangle, Wrench, CalendarClock, Building2, ArrowRight, Settings } from 'lucide-react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
-import StatCard from '@/components/StatCard';
+import { DollarSign, TrendingUp, AlertTriangle, TrendingDown, CheckCircle2, Clock, Wrench, CalendarClock, MessageCircle, ReceiptText, ChevronRight } from 'lucide-react';
+import { Card } from "@/components/ui/card";
 import StatusBadge from '@/components/StatusBadge';
-import { format, differenceInDays, parseISO } from 'date-fns';
+import { differenceInDays, parseISO, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, format } from 'date-fns';
+
+function SummaryCard({ icon: Icon, label, value, color = 'text-primary', bg = 'bg-primary/10' }) {
+  return (
+    <Card className="p-4 flex flex-col gap-2">
+      <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center`}>
+        <Icon className={`w-4 h-4 ${color}`} />
+      </div>
+      <p className="text-xs text-muted-foreground leading-tight">{label}</p>
+      <p className="text-xl font-bold text-foreground leading-none">{value}</p>
+    </Card>
+  );
+}
+
+function SectionHeader({ title, icon: Icon, linkTo, linkLabel = 'See all' }) {
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2">
+        <Icon className="w-4 h-4 text-muted-foreground" />
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+      </div>
+      {linkTo && (
+        <Link to={linkTo} className="text-xs text-primary font-medium flex items-center gap-0.5">
+          {linkLabel} <ChevronRight className="w-3 h-3" />
+        </Link>
+      )}
+    </div>
+  );
+}
+
+function ListRow({ to, left, right, sub }) {
+  return (
+    <Link to={to} className="flex items-center justify-between py-3 border-b border-border last:border-0 hover:bg-muted/40 -mx-4 px-4 transition-colors">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-foreground truncate">{left}</p>
+        {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
+      </div>
+      <div className="flex items-center gap-2 shrink-0 ml-3">{right}</div>
+    </Link>
+  );
+}
 
 export default function LandlordDashboard() {
   const { user } = useAuth();
-
-  const { data: properties = [] } = useQuery({
-    queryKey: ['properties'],
-    queryFn: () => base44.entities.Property.filter({ landlord_id: user?.id }),
-  });
+  const now = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
 
   const { data: rentCharges = [] } = useQuery({
     queryKey: ['rentCharges'],
     queryFn: () => base44.entities.RentCharge.filter({ landlord_id: user?.id }),
-  });
-
-  const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses'],
-    queryFn: () => base44.entities.Expense.filter({ landlord_id: user?.id }),
   });
 
   const { data: tenancies = [] } = useQuery({
@@ -38,115 +71,202 @@ export default function LandlordDashboard() {
     queryFn: () => base44.entities.MaintenanceRequest.filter({ landlord_id: user?.id }),
   });
 
-  const now = new Date();
-  const thisMonth = format(now, 'yyyy-MM');
+  const { data: expenses = [] } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: () => base44.entities.Expense.filter({ landlord_id: user?.id }),
+  });
 
-  const totalDue = rentCharges.filter(r => ['due', 'overdue'].includes(r.status)).reduce((s, r) => s + (r.amount || 0), 0);
-  const collected = rentCharges.filter(r => ['paid', 'confirmed'].includes(r.status) && r.due_date?.startsWith(thisMonth)).reduce((s, r) => s + (r.amount || 0), 0);
-  const overdue = rentCharges.filter(r => r.status === 'overdue').reduce((s, r) => s + (r.amount || 0), 0);
-  const monthlyIncome = rentCharges.filter(r => ['paid', 'confirmed'].includes(r.status) && r.due_date?.startsWith(thisMonth)).reduce((s, r) => s + (r.amount || 0), 0);
-  const monthlyExpenses = expenses.filter(e => e.date?.startsWith(thisMonth)).reduce((s, e) => s + (e.amount || 0), 0);
+  const { data: chats = [] } = useQuery({
+    queryKey: ['chats'],
+    queryFn: () => base44.entities.Chat.list('-last_message_at', 20),
+  });
+
+  // Summary calculations
+  const inWeek = (dateStr) => {
+    if (!dateStr) return false;
+    try { return isWithinInterval(parseISO(dateStr), { start: weekStart, end: weekEnd }); } catch { return false; }
+  };
+  const inMonth = (dateStr) => {
+    if (!dateStr) return false;
+    try { return isWithinInterval(parseISO(dateStr), { start: monthStart, end: monthEnd }); } catch { return false; }
+  };
+
+  const rentDueThisWeek = rentCharges
+    .filter(r => ['due', 'upcoming'].includes(r.status) && inWeek(r.due_date))
+    .reduce((s, r) => s + (r.amount || 0), 0);
+
+  const rentCollectedThisWeek = rentCharges
+    .filter(r => ['paid', 'confirmed'].includes(r.status) && inWeek(r.paid_date || r.due_date))
+    .reduce((s, r) => s + (r.amount || 0), 0);
+
+  const overdueTotal = rentCharges
+    .filter(r => r.status === 'overdue')
+    .reduce((s, r) => s + (r.amount || 0), 0);
+
+  const monthlyIncome = rentCharges
+    .filter(r => ['paid', 'confirmed'].includes(r.status) && inMonth(r.due_date))
+    .reduce((s, r) => s + (r.amount || 0), 0);
+  const monthlyExpenses = expenses
+    .filter(e => inMonth(e.date))
+    .reduce((s, e) => s + (e.amount || 0), 0);
   const netCashflow = monthlyIncome - monthlyExpenses;
-  const openMaintenance = maintenanceRequests.filter(m => ['open', 'in_progress'].includes(m.status)).length;
 
-  const expiringLeases = tenancies.filter(t => {
-    if (!t.lease_end || t.status !== 'active') return false;
-    const days = differenceInDays(parseISO(t.lease_end), now);
-    return days >= 0 && days <= 60;
-  }).sort((a, b) => new Date(a.lease_end) - new Date(b.lease_end));
+  // Sections
+  const awaitingConfirmation = rentCharges.filter(r => r.status === 'paid');
+  const overdueCharges = rentCharges.filter(r => r.status === 'overdue');
+
+  const expiringLeases = tenancies
+    .filter(t => {
+      if (!t.lease_end || t.status !== 'active') return false;
+      const days = differenceInDays(parseISO(t.lease_end), now);
+      return days >= 0 && days <= 60;
+    })
+    .sort((a, b) => new Date(a.lease_end) - new Date(b.lease_end));
+
+  const openMaintenance = maintenanceRequests
+    .filter(m => ['open', 'in_progress'].includes(m.status))
+    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+
+  const recentExpenses = [...expenses]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 4);
+
+  const myChats = chats
+    .filter(c => c.participant_ids?.includes(user?.id))
+    .slice(0, 4);
+
+  const fmt$ = (n) => `$${(n || 0).toLocaleString()}`;
 
   return (
-    <div className="space-y-6 p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Welcome back, {user?.full_name?.split(' ')[0]}</p>
-        </div>
-        <Link to="/settings">
-          <Button variant="ghost" size="icon"><Settings className="w-5 h-5" /></Button>
-        </Link>
+    <div className="p-4 space-y-5 pb-6">
+      {/* Header */}
+      <div className="pt-2">
+        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{format(now, 'EEEE, d MMMM')}</p>
+        <h1 className="text-2xl font-bold mt-0.5">Dashboard</h1>
       </div>
 
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard icon={DollarSign} label="Rent Due" value={`$${totalDue.toLocaleString()}`} />
-        <StatCard icon={TrendingUp} label="Collected" value={`$${collected.toLocaleString()}`} sublabel="This month" />
-        <StatCard icon={AlertTriangle} label="Overdue" value={`$${overdue.toLocaleString()}`} iconColor="text-destructive" />
-        <StatCard icon={Wrench} label="Open Repairs" value={openMaintenance} />
+        <SummaryCard icon={DollarSign} label="Rent Due This Week" value={fmt$(rentDueThisWeek)} bg="bg-amber-50" color="text-amber-600" />
+        <SummaryCard icon={TrendingUp} label="Collected This Week" value={fmt$(rentCollectedThisWeek)} bg="bg-emerald-50" color="text-emerald-600" />
+        <SummaryCard icon={AlertTriangle} label="Overdue Rent" value={fmt$(overdueTotal)} bg="bg-red-50" color="text-red-500" />
+        <SummaryCard
+          icon={netCashflow >= 0 ? TrendingUp : TrendingDown}
+          label="Net Cashflow (Month)"
+          value={(netCashflow >= 0 ? '+' : '') + fmt$(netCashflow)}
+          bg={netCashflow >= 0 ? 'bg-primary/10' : 'bg-red-50'}
+          color={netCashflow >= 0 ? 'text-primary' : 'text-red-500'}
+        />
       </div>
 
-      <Card className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold">Monthly Cashflow</h2>
-          <span className="text-xs text-muted-foreground">{format(now, 'MMMM yyyy')}</span>
-        </div>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Income</span>
-            <span className="font-medium text-emerald-600">+${monthlyIncome.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Expenses</span>
-            <span className="font-medium text-red-500">-${monthlyExpenses.toLocaleString()}</span>
-          </div>
-          <div className="border-t pt-2 flex justify-between text-sm font-semibold">
-            <span>Net Cashflow</span>
-            <span className={netCashflow >= 0 ? 'text-emerald-600' : 'text-red-500'}>
-              {netCashflow >= 0 ? '+' : ''}${netCashflow.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      </Card>
-
-      {expiringLeases.length > 0 && (
+      {/* Awaiting Confirmation */}
+      {awaitingConfirmation.length > 0 && (
         <Card className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold flex items-center gap-2">
-              <CalendarClock className="w-4 h-4 text-amber-500" /> Expiring Leases
-            </h2>
-            <Link to="/lease-expiry" className="text-xs text-primary font-medium">View all</Link>
-          </div>
-          <div className="space-y-2">
-            {expiringLeases.slice(0, 3).map(t => {
-              const days = differenceInDays(parseISO(t.lease_end), now);
-              return (
-                <div key={t.id} className="flex items-center justify-between text-sm">
-                  <div>
-                    <span className="font-medium">{t.tenant_name || t.tenant_email}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <StatusBadge status="expiring_soon" label={`${days}d`} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <SectionHeader title="Awaiting Confirmation" icon={CheckCircle2} />
+          {awaitingConfirmation.slice(0, 4).map(r => (
+            <ListRow
+              key={r.id}
+              to={`/properties/${r.property_id}/rent-ledger`}
+              left={r.tenant_id || 'Tenant'}
+              sub={`Due ${r.due_date} · ${fmt$(r.amount)}`}
+              right={<StatusBadge status="paid" label="Confirm Pending" />}
+            />
+          ))}
         </Card>
       )}
 
-      <Card className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold flex items-center gap-2">
-            <Building2 className="w-4 h-4" /> Properties
-          </h2>
-          <Link to="/properties" className="text-xs text-primary font-medium flex items-center gap-1">
-            View all <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
-        <div className="space-y-2">
-          {properties.slice(0, 3).map(p => (
-            <Link key={p.id} to={`/properties/${p.id}`} className="flex items-center justify-between text-sm hover:bg-muted rounded-lg p-2 -mx-2 transition-colors">
-              <div>
-                <span className="font-medium">{p.name}</span>
-                <p className="text-xs text-muted-foreground">{p.address}</p>
-              </div>
-              <ArrowRight className="w-4 h-4 text-muted-foreground" />
-            </Link>
+      {/* Overdue Tenants */}
+      {overdueCharges.length > 0 && (
+        <Card className="p-4">
+          <SectionHeader title="Overdue Tenants" icon={AlertTriangle} />
+          {overdueCharges.slice(0, 4).map(r => (
+            <ListRow
+              key={r.id}
+              to={`/properties/${r.property_id}/rent-ledger`}
+              left={r.tenant_id || 'Tenant'}
+              sub={`Overdue since ${r.due_date}`}
+              right={<>
+                <span className="text-sm font-semibold text-red-500">{fmt$(r.amount)}</span>
+                <StatusBadge status="overdue" />
+              </>}
+            />
           ))}
-          {properties.length === 0 && (
-            <p className="text-sm text-muted-foreground">No properties yet</p>
-          )}
-        </div>
-      </Card>
+        </Card>
+      )}
+
+      {/* Expiring Leases */}
+      {expiringLeases.length > 0 && (
+        <Card className="p-4">
+          <SectionHeader title="Leases Expiring Soon" icon={CalendarClock} linkTo="/lease-expiry" />
+          {expiringLeases.slice(0, 4).map(t => {
+            const days = differenceInDays(parseISO(t.lease_end), now);
+            return (
+              <ListRow
+                key={t.id}
+                to={`/properties/${t.property_id}`}
+                left={t.tenant_name || t.tenant_email}
+                sub={`Ends ${t.lease_end}`}
+                right={<StatusBadge status="expiring_soon" label={`${days}d left`} />}
+              />
+            );
+          })}
+        </Card>
+      )}
+
+      {/* Open Maintenance */}
+      {openMaintenance.length > 0 && (
+        <Card className="p-4">
+          <SectionHeader title="Open Maintenance" icon={Wrench} linkTo="/maintenance" />
+          {openMaintenance.slice(0, 4).map(m => (
+            <ListRow
+              key={m.id}
+              to={`/maintenance/${m.id}`}
+              left={m.title}
+              sub={m.description}
+              right={<StatusBadge status={m.status} />}
+            />
+          ))}
+        </Card>
+      )}
+
+      {/* Recent Expenses */}
+      {recentExpenses.length > 0 && (
+        <Card className="p-4">
+          <SectionHeader title="Recent Expenses" icon={ReceiptText} />
+          {recentExpenses.map(e => (
+            <ListRow
+              key={e.id}
+              to={`/properties/${e.property_id}/expenses`}
+              left={e.description || e.category}
+              sub={e.date}
+              right={<span className="text-sm font-medium text-red-500">-{fmt$(e.amount)}</span>}
+            />
+          ))}
+        </Card>
+      )}
+
+      {/* Recent Messages */}
+      {myChats.length > 0 && (
+        <Card className="p-4">
+          <SectionHeader title="Recent Messages" icon={MessageCircle} linkTo="/messages" />
+          {myChats.map(c => (
+            <ListRow
+              key={c.id}
+              to={`/chat/${c.id}`}
+              left={c.name || 'Chat'}
+              sub={c.last_message || 'No messages yet'}
+              right={<ChevronRight className="w-4 h-4 text-muted-foreground" />}
+            />
+          ))}
+        </Card>
+      )}
+
+      {/* Empty state if nothing to show */}
+      {awaitingConfirmation.length === 0 && overdueCharges.length === 0 && expiringLeases.length === 0 && openMaintenance.length === 0 && recentExpenses.length === 0 && myChats.length === 0 && (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground text-sm">All caught up! No pending items.</p>
+        </Card>
+      )}
     </div>
   );
 }
