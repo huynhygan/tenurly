@@ -1,9 +1,12 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import BottomNav from './BottomNav';
 import ModeSwitcher from './ModeSwitcher';
 import PageTransition from './PageTransition';
+import { useTabHistory } from '@/lib/TabHistoryContext';
+
+const TAB_ROOTS = ['/', '/properties', '/messages', '/notifications', '/settings', '/rent', '/repairs', '/documents'];
 
 export default function RoleLayout() {
   const { currentMode } = useAuth();
