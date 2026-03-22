@@ -2,12 +2,14 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import BottomNav from './BottomNav';
+import ModeSwitcher from './ModeSwitcher';
 
 export default function RoleLayout() {
   const { currentMode } = useAuth();
 
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto relative">
+      <ModeSwitcher />
       <div className="pb-20">
         <Outlet />
       </div>
