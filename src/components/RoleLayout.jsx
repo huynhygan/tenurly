@@ -10,6 +10,18 @@ const TAB_ROOTS = ['/', '/properties', '/messages', '/notifications', '/settings
 
 export default function RoleLayout() {
   const { currentMode } = useAuth();
+  const location = useLocation();
+  const { pushTab } = useTabHistory();
+
+  // Register every navigation into the appropriate tab stack
+  useEffect(() => {
+    const path = location.pathname;
+    // Find the deepest matching tab root
+    const tabRoot = TAB_ROOTS
+      .filter(r => r === '/' ? path === '/' : path.startsWith(r))
+      .sort((a, b) => b.length - a.length)[0];
+    if (tabRoot) pushTab(tabRoot, path + location.search);
+  }, [location.pathname, location.search]);
 
   return (
     <div
