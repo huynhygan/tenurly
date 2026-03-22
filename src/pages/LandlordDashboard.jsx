@@ -3,58 +3,86 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
-import { DollarSign, TrendingUp, AlertTriangle, TrendingDown, CheckCircle2, Clock, Wrench, CalendarClock, MessageCircle, ReceiptText, ChevronRight } from 'lucide-react';
+import {
+  DollarSign, TrendingUp, TrendingDown, AlertTriangle,
+  Wrench, CalendarClock, MessageCircle, ChevronRight,
+  CheckCircle2, Clock, Bell
+} from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import StatusBadge from '@/components/StatusBadge';
-import { differenceInDays, parseISO, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, format } from 'date-fns';
+import {
+  differenceInDays, parseISO,
+  startOfMonth, endOfMonth, isWithinInterval, format
+} from 'date-fns';
 
-function SummaryCard({ icon: Icon, label, value, color = 'text-primary', bg = 'bg-primary/10' }) {
+// ── Horizontal scroll metric card ────────────────────────────────────────────
+function MetricCard({ icon: Icon, label, value, sub, iconBg, iconColor, valueColor = 'text-foreground' }) {
   return (
-    <Card className="p-4 flex flex-col gap-2">
-      <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center`}>
-        <Icon className={`w-4 h-4 ${color}`} />
+    <div className="flex-shrink-0 w-36 rounded-2xl bg-card border border-border p-4 flex flex-col gap-3 shadow-sm">
+      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${iconBg}`}>
+        <Icon className={`w-4 h-4 ${iconColor}`} />
       </div>
-      <p className="text-xs text-muted-foreground leading-tight">{label}</p>
-      <p className="text-xl font-bold text-foreground leading-none">{value}</p>
-    </Card>
-  );
-}
-
-function SectionHeader({ title, icon: Icon, linkTo, linkLabel = 'See all' }) {
-  return (
-    <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2">
-        <Icon className="w-4 h-4 text-muted-foreground" />
-        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+      <div>
+        <p className={`text-xl font-bold leading-none ${valueColor}`}>{value}</p>
+        {sub && <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>}
       </div>
-      {linkTo && (
-        <Link to={linkTo} className="text-xs text-primary font-medium flex items-center gap-0.5">
-          {linkLabel} <ChevronRight className="w-3 h-3" />
-        </Link>
-      )}
+      <p className="text-[11px] font-medium text-muted-foreground leading-tight">{label}</p>
     </div>
   );
 }
 
-function ListRow({ to, left, right, sub }) {
+// ── Section wrapper ───────────────────────────────────────────────────────────
+function Section({ title, icon: Icon, linkTo, children }) {
   return (
-    <Link to={to} className="flex items-center justify-between py-3 border-b border-border last:border-0 hover:bg-muted/40 -mx-4 px-4 transition-colors">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-foreground truncate">{left}</p>
-        {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Icon className="w-4 h-4 text-muted-foreground" />
+          <h2 className="text-sm font-semibold">{title}</h2>
+        </div>
+        {linkTo && (
+          <Link to={linkTo} className="flex items-center gap-0.5 text-xs text-primary font-medium">
+            See all <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        )}
       </div>
-      <div className="flex items-center gap-2 shrink-0 ml-3">{right}</div>
-    </Link>
+      <Card className="divide-y divide-border overflow-hidden">
+        {children}
+      </Card>
+    </div>
   );
 }
 
+// ── Row inside a section card ─────────────────────────────────────────────────
+function Row({ to, avatar, title, sub, right }) {
+  const inner = (
+    <div className="flex items-center gap-3 px-4 py-3.5 hover:bg-muted/40 active:bg-muted/60 transition-colors">
+      {avatar && (
+        <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center bg-muted">
+          {avatar}
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-foreground truncate">{title}</p>
+        {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
+      </div>
+      <div className="shrink-0 flex items-center gap-2">{right}</div>
+    </div>
+  );
+  return to ? <Link to={to}>{inner}</Link> : inner;
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 export default function LandlordDashboard() {
   const { user } = useAuth();
   const now = new Date();
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
+
+  const inMonth = (d) => {
+    if (!d) return false;
+    try { return isWithinInterval(parseISO(d), { start: monthStart, end: monthEnd }); } catch { return false; }
+  };
 
   const { data: rentCharges = [] } = useQuery({
     queryKey: ['rentCharges'],
@@ -81,192 +109,202 @@ export default function LandlordDashboard() {
     queryFn: () => base44.entities.Chat.list('-last_message_at', 20),
   });
 
-  // Summary calculations
-  const inWeek = (dateStr) => {
-    if (!dateStr) return false;
-    try { return isWithinInterval(parseISO(dateStr), { start: weekStart, end: weekEnd }); } catch { return false; }
-  };
-  const inMonth = (dateStr) => {
-    if (!dateStr) return false;
-    try { return isWithinInterval(parseISO(dateStr), { start: monthStart, end: monthEnd }); } catch { return false; }
-  };
+  // Metrics
+  const rentDue = rentCharges.filter(r => ['due', 'overdue'].includes(r.status)).reduce((s, r) => s + (r.amount || 0), 0);
+  const collected = rentCharges.filter(r => ['paid', 'confirmed'].includes(r.status) && inMonth(r.due_date)).reduce((s, r) => s + (r.amount || 0), 0);
+  const overdue = rentCharges.filter(r => r.status === 'overdue').reduce((s, r) => s + (r.amount || 0), 0);
+  const income = rentCharges.filter(r => ['paid', 'confirmed'].includes(r.status) && inMonth(r.due_date)).reduce((s, r) => s + (r.amount || 0), 0);
+  const expenseTotal = expenses.filter(e => inMonth(e.date)).reduce((s, e) => s + (e.amount || 0), 0);
+  const net = income - expenseTotal;
 
-  const rentDueThisWeek = rentCharges
-    .filter(r => ['due', 'upcoming'].includes(r.status) && inWeek(r.due_date))
-    .reduce((s, r) => s + (r.amount || 0), 0);
+  const fmt = (n) => `$${Math.abs(n || 0).toLocaleString()}`;
 
-  const rentCollectedThisWeek = rentCharges
-    .filter(r => ['paid', 'confirmed'].includes(r.status) && inWeek(r.paid_date || r.due_date))
-    .reduce((s, r) => s + (r.amount || 0), 0);
-
-  const overdueTotal = rentCharges
-    .filter(r => r.status === 'overdue')
-    .reduce((s, r) => s + (r.amount || 0), 0);
-
-  const monthlyIncome = rentCharges
-    .filter(r => ['paid', 'confirmed'].includes(r.status) && inMonth(r.due_date))
-    .reduce((s, r) => s + (r.amount || 0), 0);
-  const monthlyExpenses = expenses
-    .filter(e => inMonth(e.date))
-    .reduce((s, e) => s + (e.amount || 0), 0);
-  const netCashflow = monthlyIncome - monthlyExpenses;
-
-  // Sections
-  const awaitingConfirmation = rentCharges.filter(r => r.status === 'paid');
-  const overdueCharges = rentCharges.filter(r => r.status === 'overdue');
+  // Sections data
+  const actionItems = [
+    ...rentCharges.filter(r => r.status === 'paid').map(r => ({ type: 'confirm', r })),
+    ...rentCharges.filter(r => r.status === 'overdue').map(r => ({ type: 'overdue', r })),
+  ];
 
   const expiringLeases = tenancies
     .filter(t => {
       if (!t.lease_end || t.status !== 'active') return false;
-      const days = differenceInDays(parseISO(t.lease_end), now);
-      return days >= 0 && days <= 60;
+      const d = differenceInDays(parseISO(t.lease_end), now);
+      return d >= 0 && d <= 60;
     })
     .sort((a, b) => new Date(a.lease_end) - new Date(b.lease_end));
 
   const openMaintenance = maintenanceRequests
     .filter(m => ['open', 'in_progress'].includes(m.status))
-    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    .sort((a, b) => {
+      const p = { urgent: 0, high: 1, medium: 2, low: 3 };
+      return (p[a.priority] ?? 2) - (p[b.priority] ?? 2);
+    });
 
-  const recentExpenses = [...expenses]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 4);
+  const myChats = chats.filter(c => c.participant_ids?.includes(user?.id)).slice(0, 5);
 
-  const myChats = chats
-    .filter(c => c.participant_ids?.includes(user?.id))
-    .slice(0, 4);
-
-  const fmt$ = (n) => `$${(n || 0).toLocaleString()}`;
+  const priorityColor = { urgent: 'text-red-500', high: 'text-orange-500', medium: 'text-amber-500', low: 'text-blue-400' };
+  const priorityBg = { urgent: 'bg-red-50', high: 'bg-orange-50', medium: 'bg-amber-50', low: 'bg-blue-50' };
 
   return (
-    <div className="p-4 space-y-5 pb-6">
-      {/* Header */}
-      <div className="pt-2">
-        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{format(now, 'EEEE, d MMMM')}</p>
-        <h1 className="text-2xl font-bold mt-0.5">Dashboard</h1>
+    <div className="pb-8 space-y-6">
+
+      {/* ── Header ── */}
+      <div className="px-4 pt-5 pb-1 flex items-start justify-between">
+        <div>
+          <p className="text-xs text-muted-foreground font-medium tracking-wide uppercase">
+            {format(now, 'EEEE, d MMMM')}
+          </p>
+          <h1 className="text-2xl font-bold mt-0.5">
+            Hi, {user?.full_name?.split(' ')[0] || 'there'} 👋
+          </h1>
+        </div>
+        <Link to="/notifications">
+          <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center mt-1">
+            <Bell className="w-4 h-4 text-muted-foreground" />
+          </div>
+        </Link>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <SummaryCard icon={DollarSign} label="Rent Due This Week" value={fmt$(rentDueThisWeek)} bg="bg-amber-50" color="text-amber-600" />
-        <SummaryCard icon={TrendingUp} label="Collected This Week" value={fmt$(rentCollectedThisWeek)} bg="bg-emerald-50" color="text-emerald-600" />
-        <SummaryCard icon={AlertTriangle} label="Overdue Rent" value={fmt$(overdueTotal)} bg="bg-red-50" color="text-red-500" />
-        <SummaryCard
-          icon={netCashflow >= 0 ? TrendingUp : TrendingDown}
-          label="Net Cashflow (Month)"
-          value={(netCashflow >= 0 ? '+' : '') + fmt$(netCashflow)}
-          bg={netCashflow >= 0 ? 'bg-primary/10' : 'bg-red-50'}
-          color={netCashflow >= 0 ? 'text-primary' : 'text-red-500'}
+      {/* ── Metric cards — horizontal scroll ── */}
+      <div className="flex gap-3 overflow-x-auto px-4 pb-1 scrollbar-hide">
+        <MetricCard
+          icon={DollarSign}
+          label="Rent Due"
+          value={fmt(rentDue)}
+          sub="Outstanding"
+          iconBg="bg-amber-50"
+          iconColor="text-amber-600"
+          valueColor="text-amber-700"
+        />
+        <MetricCard
+          icon={CheckCircle2}
+          label="Collected"
+          value={fmt(collected)}
+          sub="This month"
+          iconBg="bg-emerald-50"
+          iconColor="text-emerald-600"
+          valueColor="text-emerald-700"
+        />
+        <MetricCard
+          icon={AlertTriangle}
+          label="Overdue"
+          value={fmt(overdue)}
+          sub={overdue > 0 ? 'Action needed' : 'All clear'}
+          iconBg={overdue > 0 ? 'bg-red-50' : 'bg-muted'}
+          iconColor={overdue > 0 ? 'text-red-500' : 'text-muted-foreground'}
+          valueColor={overdue > 0 ? 'text-red-600' : 'text-foreground'}
+        />
+        <MetricCard
+          icon={net >= 0 ? TrendingUp : TrendingDown}
+          label="Net Cashflow"
+          value={(net >= 0 ? '+' : '-') + fmt(net)}
+          sub="This month"
+          iconBg={net >= 0 ? 'bg-primary/10' : 'bg-red-50'}
+          iconColor={net >= 0 ? 'text-primary' : 'text-red-500'}
+          valueColor={net >= 0 ? 'text-primary' : 'text-red-600'}
         />
       </div>
 
-      {/* Awaiting Confirmation */}
-      {awaitingConfirmation.length > 0 && (
-        <Card className="p-4">
-          <SectionHeader title="Awaiting Confirmation" icon={CheckCircle2} />
-          {awaitingConfirmation.slice(0, 4).map(r => (
-            <ListRow
-              key={r.id}
-              to={`/properties/${r.property_id}/rent-ledger`}
-              left={r.tenant_id || 'Tenant'}
-              sub={`Due ${r.due_date} · ${fmt$(r.amount)}`}
-              right={<StatusBadge status="paid" label="Confirm Pending" />}
-            />
-          ))}
-        </Card>
-      )}
+      <div className="px-4 space-y-5">
 
-      {/* Overdue Tenants */}
-      {overdueCharges.length > 0 && (
-        <Card className="p-4">
-          <SectionHeader title="Overdue Tenants" icon={AlertTriangle} />
-          {overdueCharges.slice(0, 4).map(r => (
-            <ListRow
-              key={r.id}
-              to={`/properties/${r.property_id}/rent-ledger`}
-              left={r.tenant_id || 'Tenant'}
-              sub={`Overdue since ${r.due_date}`}
-              right={<>
-                <span className="text-sm font-semibold text-red-500">{fmt$(r.amount)}</span>
-                <StatusBadge status="overdue" />
-              </>}
-            />
-          ))}
-        </Card>
-      )}
-
-      {/* Expiring Leases */}
-      {expiringLeases.length > 0 && (
-        <Card className="p-4">
-          <SectionHeader title="Leases Expiring Soon" icon={CalendarClock} linkTo="/lease-expiry" />
-          {expiringLeases.slice(0, 4).map(t => {
-            const days = differenceInDays(parseISO(t.lease_end), now);
-            return (
-              <ListRow
-                key={t.id}
-                to={`/properties/${t.property_id}`}
-                left={t.tenant_name || t.tenant_email}
-                sub={`Ends ${t.lease_end}`}
-                right={<StatusBadge status="expiring_soon" label={`${days}d left`} />}
+        {/* ── Action Required ── */}
+        {actionItems.length > 0 && (
+          <Section title="Action Required" icon={Clock}>
+            {actionItems.slice(0, 5).map(({ type, r }) => (
+              <Row
+                key={r.id}
+                to={`/properties/${r.property_id}/rent-ledger`}
+                avatar={
+                  type === 'confirm'
+                    ? <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    : <AlertTriangle className="w-4 h-4 text-red-500" />
+                }
+                title={type === 'confirm' ? 'Payment to confirm' : 'Overdue rent'}
+                sub={`Due ${r.due_date} · $${(r.amount || 0).toLocaleString()}`}
+                right={
+                  <StatusBadge
+                    status={type === 'confirm' ? 'paid' : 'overdue'}
+                    label={type === 'confirm' ? 'Confirm' : 'Overdue'}
+                  />
+                }
               />
-            );
-          })}
-        </Card>
-      )}
+            ))}
+          </Section>
+        )}
 
-      {/* Open Maintenance */}
-      {openMaintenance.length > 0 && (
-        <Card className="p-4">
-          <SectionHeader title="Open Maintenance" icon={Wrench} linkTo="/maintenance" />
-          {openMaintenance.slice(0, 4).map(m => (
-            <ListRow
-              key={m.id}
-              to={`/maintenance/${m.id}`}
-              left={m.title}
-              sub={m.description}
-              right={<StatusBadge status={m.status} />}
-            />
-          ))}
-        </Card>
-      )}
+        {/* ── Leases Expiring ── */}
+        {expiringLeases.length > 0 && (
+          <Section title="Leases Expiring Soon" icon={CalendarClock} linkTo="/lease-expiry">
+            {expiringLeases.slice(0, 4).map(t => {
+              const days = differenceInDays(parseISO(t.lease_end), now);
+              return (
+                <Row
+                  key={t.id}
+                  to={`/properties/${t.property_id}`}
+                  avatar={<CalendarClock className="w-4 h-4 text-amber-500" />}
+                  title={t.tenant_name || t.tenant_email}
+                  sub={`Expires ${format(parseISO(t.lease_end), 'd MMM yyyy')}`}
+                  right={
+                    <StatusBadge
+                      status="expiring_soon"
+                      label={days === 0 ? 'Today' : `${days}d`}
+                    />
+                  }
+                />
+              );
+            })}
+          </Section>
+        )}
 
-      {/* Recent Expenses */}
-      {recentExpenses.length > 0 && (
-        <Card className="p-4">
-          <SectionHeader title="Recent Expenses" icon={ReceiptText} />
-          {recentExpenses.map(e => (
-            <ListRow
-              key={e.id}
-              to={`/properties/${e.property_id}/expenses`}
-              left={e.description || e.category}
-              sub={e.date}
-              right={<span className="text-sm font-medium text-red-500">-{fmt$(e.amount)}</span>}
-            />
-          ))}
-        </Card>
-      )}
+        {/* ── Maintenance ── */}
+        {openMaintenance.length > 0 && (
+          <Section title="Maintenance Requests" icon={Wrench} linkTo="/maintenance">
+            {openMaintenance.slice(0, 4).map(m => (
+              <Row
+                key={m.id}
+                to={`/maintenance/${m.id}`}
+                avatar={
+                  <Wrench className={`w-4 h-4 ${priorityColor[m.priority] || 'text-muted-foreground'}`} />
+                }
+                title={m.title}
+                sub={m.description}
+                right={
+                  <div className="flex items-center gap-1.5">
+                    <StatusBadge status={m.priority} />
+                    <StatusBadge status={m.status} />
+                  </div>
+                }
+              />
+            ))}
+          </Section>
+        )}
 
-      {/* Recent Messages */}
-      {myChats.length > 0 && (
-        <Card className="p-4">
-          <SectionHeader title="Recent Messages" icon={MessageCircle} linkTo="/messages" />
-          {myChats.map(c => (
-            <ListRow
-              key={c.id}
-              to={`/chat/${c.id}`}
-              left={c.name || 'Chat'}
-              sub={c.last_message || 'No messages yet'}
-              right={<ChevronRight className="w-4 h-4 text-muted-foreground" />}
-            />
-          ))}
-        </Card>
-      )}
+        {/* ── Messages ── */}
+        {myChats.length > 0 && (
+          <Section title="Messages" icon={MessageCircle} linkTo="/messages">
+            {myChats.map(c => (
+              <Row
+                key={c.id}
+                to={`/chat/${c.id}`}
+                avatar={<MessageCircle className="w-4 h-4 text-primary" />}
+                title={c.name || 'Chat'}
+                sub={c.last_message || 'No messages yet'}
+                right={<ChevronRight className="w-4 h-4 text-muted-foreground" />}
+              />
+            ))}
+          </Section>
+        )}
 
-      {/* Empty state if nothing to show */}
-      {awaitingConfirmation.length === 0 && overdueCharges.length === 0 && expiringLeases.length === 0 && openMaintenance.length === 0 && recentExpenses.length === 0 && myChats.length === 0 && (
-        <Card className="p-8 text-center">
-          <p className="text-muted-foreground text-sm">All caught up! No pending items.</p>
-        </Card>
-      )}
+        {/* ── All clear ── */}
+        {actionItems.length === 0 && expiringLeases.length === 0 && openMaintenance.length === 0 && myChats.length === 0 && (
+          <Card className="p-10 text-center">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-3" />
+            <p className="text-sm font-medium text-foreground">All caught up!</p>
+            <p className="text-xs text-muted-foreground mt-1">No pending items right now.</p>
+          </Card>
+        )}
+
+      </div>
     </div>
   );
 }
