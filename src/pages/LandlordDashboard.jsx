@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, CalendarClock, CheckCircle2, DollarSign, MessageCircle, TrendingDown, TrendingUp, Wrench } from 'lucide-react';
+import { AlertTriangle, CalendarClock, CheckCircle2, DollarSign, MessageCircle, TrendingDown, TrendingUp, Wrench, BarChart2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Card } from '@/components/ui/card';
