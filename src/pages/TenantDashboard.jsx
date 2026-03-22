@@ -1,13 +1,24 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { CalendarClock, CreditCard, FileText, MessageCircle, Wrench } from 'lucide-react';
+import { CalendarClock, CreditCard, FileText, MessageCircle, Wrench, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/StatusBadge';
 import { leaseSummary, money, normalizeCharge, normalizeMaintenance, normalizeTenancy, prettyDate } from '@/lib/propertyApp';
+
+function QuickLink({ to, icon: Icon, label, iconBg }) {
+  return (
+    <Link to={to}>
+      <div className="bg-white rounded-3xl p-4 flex flex-col items-center gap-2 border border-border/40 shadow-sm active:scale-95 transition-transform">
+        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${iconBg}`}>
+          <Icon size={20} className="text-foreground/70" />
+        </div>
+        <span className="text-xs font-semibold text-foreground">{label}</span>
+      </div>
+    </Link>
+  );
+}
 
 export default function TenantDashboard() {
   const { user } = useAuth();
@@ -35,67 +46,113 @@ export default function TenantDashboard() {
   const charges = chargesRaw.map(normalizeCharge);
   const repairs = repairsRaw.map(normalizeMaintenance);
 
-  const nextDue = charges.filter(c => ['upcoming', 'due', 'pending', 'overdue'].includes(c.status)).sort((a,b) => new Date(a.due_date) - new Date(b.due_date))[0];
+  const nextDue = charges
+    .filter(c => ['upcoming', 'due', 'pending', 'overdue'].includes(c.status))
+    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0];
   const lease = leaseSummary(tenancy?.lease_end);
-  const openRepairs = repairs.filter(r => !['completed', 'closed'].includes(r.status)).length;
+  const openRepairs = repairs.filter(r => !['completed', 'cancelled'].includes(r.status)).length;
+  const recentCharges = charges.slice(0, 3);
+
+  const firstName = user?.full_name?.split(' ')[0] || 'there';
 
   return (
-    <div className="space-y-5 px-4 py-5">
-      <header className="space-y-1">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tenant home</p>
-        <h1 className="text-3xl font-bold">Hi, {user?.full_name?.split(' ')[0] || 'there'}</h1>
-        <p className="text-sm text-muted-foreground">See your next rent, lease expiry and repairs in one place.</p>
-      </header>
+    <div className="pb-6">
+      {/* Header */}
+      <div className="px-5 pt-6 pb-4">
+        <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">roomflo</p>
+        <h1 className="text-2xl font-extrabold text-foreground">Hi, {firstName} 👋</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {tenancy ? `${tenancy.tenant_email ? '' : ''}Your rental summary` : 'Welcome to your rental home.'}
+        </p>
+      </div>
 
-      <Card className="rounded-3xl bg-primary p-5 text-primary-foreground shadow-sm">
-        <p className="text-xs font-medium opacity-80">Next rent due</p>
-        <h2 className="mt-1 text-3xl font-bold">{nextDue ? money(nextDue.amount) : 'No charge due'}</h2>
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs opacity-80">Due date</p>
-            <p className="font-semibold">{prettyDate(nextDue?.due_date, 'Not scheduled')}</p>
+      {/* Next rent card */}
+      <div className="px-5 mb-5">
+        <div className={`rounded-3xl p-5 shadow-lg text-white ${
+          nextDue?.status === 'overdue'
+            ? 'bg-gradient-to-br from-red-500 to-red-400'
+            : nextDue?.status === 'paid'
+            ? 'bg-gradient-to-br from-emerald-500 to-emerald-400'
+            : 'bg-gradient-to-br from-primary to-orange-400'
+        }`}>
+          <p className="text-xs font-semibold opacity-80 uppercase tracking-wider">
+            {nextDue?.status === 'overdue' ? '⚠️ Overdue rent' : nextDue?.status === 'paid' ? '✅ Payment submitted' : 'Next rent due'}
+          </p>
+          <p className="text-4xl font-extrabold mt-1">{nextDue ? money(nextDue.amount) : '—'}</p>
+          <div className="flex items-center justify-between mt-4">
+            <div>
+              <p className="text-xs opacity-70">Due date</p>
+              <p className="font-bold">{prettyDate(nextDue?.due_date, 'Not scheduled')}</p>
+            </div>
+            {nextDue && (
+              <Link to="/rent">
+                <div className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-2xl text-sm font-bold transition-colors">
+                  {['upcoming', 'due', 'overdue'].includes(nextDue?.status) ? "I've paid →" : 'View'}
+                </div>
+              </Link>
+            )}
           </div>
-          {nextDue && <StatusBadge status={nextDue.status} label={nextDue.status === 'pending' ? 'Waiting review' : undefined} />}
         </div>
-      </Card>
+      </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Card className="rounded-3xl p-4 shadow-sm">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-50 text-violet-700"><CalendarClock className="h-5 w-5" /></div>
-          <p className="text-xs text-muted-foreground">Lease expiry</p>
-          <p className="mt-1 text-xl font-bold">{lease.days === null ? '—' : `${lease.days}d`}</p>
+      {/* Stats row */}
+      <div className="grid grid-cols-2 gap-3 px-5 mb-5">
+        <div className="bg-white rounded-3xl p-4 border border-border/40 shadow-sm">
+          <div className="w-9 h-9 rounded-2xl bg-violet-50 flex items-center justify-center mb-3">
+            <CalendarClock size={18} className="text-violet-500" />
+          </div>
+          <p className="text-xs text-muted-foreground font-medium">Lease expiry</p>
+          <p className="text-xl font-bold mt-0.5 text-foreground">{lease.days === null ? '—' : `${lease.days}d`}</p>
           <div className="mt-2"><StatusBadge status={lease.status} label={lease.label} /></div>
-        </Card>
-        <Card className="rounded-3xl p-4 shadow-sm">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-700"><Wrench className="h-5 w-5" /></div>
-          <p className="text-xs text-muted-foreground">Open repairs</p>
-          <p className="mt-1 text-xl font-bold">{openRepairs}</p>
-          <p className="mt-2 text-xs text-muted-foreground">Track maintenance progress</p>
-        </Card>
+        </div>
+        <div className="bg-white rounded-3xl p-4 border border-border/40 shadow-sm">
+          <div className="w-9 h-9 rounded-2xl bg-amber-50 flex items-center justify-center mb-3">
+            <Wrench size={18} className="text-amber-500" />
+          </div>
+          <p className="text-xs text-muted-foreground font-medium">Open repairs</p>
+          <p className="text-xl font-bold mt-0.5 text-foreground">{openRepairs}</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {openRepairs === 0 ? 'All clear ✅' : 'In progress'}
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link to="/rent"><Button className="h-12 w-full rounded-2xl">I've Paid / Payments</Button></Link>
-        <Link to="/repairs"><Button variant="outline" className="h-12 w-full rounded-2xl">Request Repair</Button></Link>
+      {/* Quick links */}
+      <div className="px-5 mb-6">
+        <h2 className="text-base font-bold mb-3">Quick access</h2>
+        <div className="grid grid-cols-4 gap-3">
+          <QuickLink to="/rent" icon={CreditCard} label="Payments" iconBg="bg-primary/10" />
+          <QuickLink to="/repairs" icon={Wrench} label="Repairs" iconBg="bg-amber-50" />
+          <QuickLink to="/messages" icon={MessageCircle} label="Messages" iconBg="bg-blue-50" />
+          <QuickLink to="/documents" icon={FileText} label="Documents" iconBg="bg-violet-50" />
+        </div>
       </div>
 
-      <div className="space-y-3">
-        <Link to="/rent">
-          <Card className="rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-3"><CreditCard className="h-5 w-5 text-primary" /><div><p className="font-semibold">Payments</p><p className="text-xs text-muted-foreground">View rent history and upload receipts</p></div></div>
-          </Card>
-        </Link>
-        <Link to="/documents">
-          <Card className="rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-3"><FileText className="h-5 w-5 text-primary" /><div><p className="font-semibold">Lease documents</p><p className="text-xs text-muted-foreground">Rental agreement, bond receipt and notices</p></div></div>
-          </Card>
-        </Link>
-        <Link to="/messages">
-          <Card className="rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-3"><MessageCircle className="h-5 w-5 text-primary" /><div><p className="font-semibold">Messages</p><p className="text-xs text-muted-foreground">Chat with landlord and household</p></div></div>
-          </Card>
-        </Link>
-      </div>
+      {/* Recent payments */}
+      {recentCharges.length > 0 && (
+        <div className="px-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold">Recent payments</h2>
+            <Link to="/rent" className="text-xs font-semibold text-primary flex items-center gap-0.5">
+              View all <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {recentCharges.map(c => (
+              <div key={c.id} className="bg-white rounded-2xl px-4 py-3 border border-border/40 shadow-sm flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${['paid', 'confirmed'].includes(c.status) ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+                  <CheckCircle2 size={16} className={['paid', 'confirmed'].includes(c.status) ? 'text-emerald-500' : 'text-amber-500'} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{money(c.amount)}</p>
+                  <p className="text-xs text-muted-foreground">Due {prettyDate(c.due_date)}</p>
+                </div>
+                <StatusBadge status={c.status} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,59 +1,57 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, CalendarClock, CheckCircle2, DollarSign, MessageCircle, TrendingDown, TrendingUp, Wrench, BarChart2 } from 'lucide-react';
+import { AlertTriangle, CalendarClock, CheckCircle2, DollarSign, MessageCircle, TrendingUp, TrendingDown, Wrench, BarChart2, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { Card } from '@/components/ui/card';
 import StatusBadge from '@/components/StatusBadge';
 import { isOpenMaintenance, leaseSummary, money, normalizeCharge, normalizeExpense, normalizeMaintenance, normalizeTenancy, normalizeChat, prettyDate } from '@/lib/propertyApp';
-import { startOfMonth } from 'date-fns';
 
-function Metric({ icon: Icon, label, value, tone = 'slate' }) {
+function MetricCard({ icon: Icon, label, value, tone = 'slate' }) {
   const tones = {
-    amber: 'bg-amber-50 text-amber-700',
-    emerald: 'bg-emerald-50 text-emerald-700',
-    red: 'bg-red-50 text-red-700',
-    blue: 'bg-blue-50 text-blue-700',
-    slate: 'bg-slate-100 text-slate-700',
+    amber: { bg: 'bg-amber-50', icon: 'text-amber-500', value: 'text-amber-700' },
+    emerald: { bg: 'bg-emerald-50', icon: 'text-emerald-500', value: 'text-emerald-700' },
+    red: { bg: 'bg-red-50', icon: 'text-red-500', value: 'text-red-700' },
+    blue: { bg: 'bg-blue-50', icon: 'text-blue-500', value: 'text-blue-700' },
+    slate: { bg: 'bg-slate-50', icon: 'text-slate-500', value: 'text-slate-700' },
   };
+  const t = tones[tone] || tones.slate;
   return (
-    <Card className="min-w-[155px] rounded-3xl p-4 shadow-sm">
-      <div className={`mb-4 flex h-10 w-10 items-center justify-center rounded-2xl ${tones[tone] || tones.slate}`}>
-        <Icon className="h-5 w-5" />
+    <div className="bg-white rounded-3xl p-4 shadow-sm border border-border/40 min-w-[150px]">
+      <div className={`w-9 h-9 rounded-2xl ${t.bg} flex items-center justify-center mb-3`}>
+        <Icon className={`w-4.5 h-4.5 ${t.icon}`} size={18} />
       </div>
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
-    </Card>
+      <p className="text-xs text-muted-foreground font-medium">{label}</p>
+      <p className={`text-xl font-bold mt-0.5 ${t.value}`}>{value}</p>
+    </div>
   );
 }
 
-function Section({ title, action, children }) {
+function SectionHeader({ title, linkTo, linkLabel = 'See all' }) {
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
-        {action}
-      </div>
-      <div className="space-y-2">{children}</div>
-    </section>
+    <div className="flex items-center justify-between mb-3">
+      <h2 className="text-base font-bold text-foreground">{title}</h2>
+      {linkTo && (
+        <Link to={linkTo} className="text-xs font-semibold text-primary flex items-center gap-0.5">
+          {linkLabel} <ChevronRight className="w-3 h-3" />
+        </Link>
+      )}
+    </div>
   );
 }
 
-function RowCard({ to, icon: Icon, title, subtitle, badge }) {
+function ActionRow({ to, icon: Icon, iconBg, title, subtitle, badge }) {
   const content = (
-    <Card className="rounded-2xl p-4 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100">
-          <Icon className="h-4 w-4 text-slate-600" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{title}</p>
-          <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
-        </div>
-        {badge}
+    <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-border/40 flex items-center gap-3">
+      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${iconBg || 'bg-muted'}`}>
+        <Icon className="w-4.5 h-4.5 text-foreground/70" size={18} />
       </div>
-    </Card>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold truncate">{title}</p>
+        <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
+      </div>
+      {badge}
+    </div>
   );
   return to ? <Link to={to}>{content}</Link> : content;
 }
@@ -100,88 +98,161 @@ export default function LandlordDashboard() {
   const due = charges.filter(c => ['due', 'upcoming', 'pending'].includes(c.status)).reduce((sum, c) => sum + c.amount, 0);
   const collected = charges.filter(c => ['paid', 'confirmed'].includes(c.status)).reduce((sum, c) => sum + c.amount, 0);
   const overdue = charges.filter(c => c.status === 'overdue').reduce((sum, c) => sum + c.amount, 0);
-  const expensesMonth = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const net = collected - expensesMonth;
+  const expensesTotal = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const net = collected - expensesTotal;
 
   const actionCharges = charges.filter(c => c.status === 'paid' || c.status === 'overdue').slice(0, 4);
   const expiring = tenancies
     .map(t => ({ ...t, lease: leaseSummary(t.lease_end) }))
     .filter(t => t.lease.days !== null && t.lease.days <= 60)
     .sort((a, b) => (a.lease.days ?? 999) - (b.lease.days ?? 999))
-    .slice(0, 4);
-  const openRepairs = maintenance.filter(m => isOpenMaintenance(m.status)).slice(0, 4);
-  const recentMessages = chats.slice(0, 4);
+    .slice(0, 3);
+  const openRepairs = maintenance.filter(m => isOpenMaintenance(m.status)).slice(0, 3);
+  const recentChats = chats.slice(0, 3);
+  const firstName = user?.full_name?.split(' ')[0] || 'there';
 
   return (
-    <div className="space-y-6 px-4 py-5">
-      <header className="space-y-1">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Landlord dashboard</p>
-        <h1 className="text-3xl font-bold">Welcome back, {user?.full_name?.split(' ')[0] || 'Anthony'}</h1>
-        <p className="text-sm text-muted-foreground">Track rent, leases, repairs and messages across your properties.</p>
-      </header>
-
-      <div className="flex gap-3 overflow-x-auto pb-1">
-        <Metric icon={DollarSign} label="Rent due" value={money(due)} tone="amber" />
-        <Metric icon={CheckCircle2} label="Collected" value={money(collected)} tone="emerald" />
-        <Metric icon={AlertTriangle} label="Overdue" value={money(overdue)} tone="red" />
-        <Metric icon={net >= 0 ? TrendingUp : TrendingDown} label="Net cashflow" value={`${net >= 0 ? '+' : '-'}${money(Math.abs(net))}`} tone="blue" />
+    <div className="pb-6">
+      {/* Header */}
+      <div className="px-5 pt-6 pb-4">
+        <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">roomflo</p>
+        <h1 className="text-2xl font-extrabold text-foreground">Hey, {firstName} 👋</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Here's your portfolio at a glance.</p>
       </div>
 
-      <Section title="Action required" action={<Link className="text-xs font-semibold text-primary" to="/properties">View all</Link>}>
-        {actionCharges.length === 0 ? <Card className="rounded-2xl p-4 text-sm text-muted-foreground">No urgent rent actions right now.</Card> : actionCharges.map((charge) => (
-          <RowCard
-            key={charge.id}
-            to={charge.property_id ? `/properties/${charge.property_id}` : '/properties'}
-            icon={charge.status === 'paid' ? CheckCircle2 : AlertTriangle}
-            title={charge.status === 'paid' ? 'Payment awaiting confirmation' : 'Overdue rent'}
-            subtitle={`${money(charge.amount)} · Due ${prettyDate(charge.due_date)}`}
-            badge={<StatusBadge status={charge.status === 'paid' ? 'pending' : 'overdue'} label={charge.status === 'paid' ? 'Confirm' : 'Overdue'} />}
-          />
-        ))}
-      </Section>
+      {/* Hero summary card */}
+      <div className="px-5 mb-5">
+        <div className="rounded-3xl bg-gradient-to-br from-primary to-orange-400 p-5 text-white shadow-lg">
+          <p className="text-xs font-semibold opacity-80 uppercase tracking-wider">Collected this period</p>
+          <p className="text-4xl font-extrabold mt-1">{money(collected)}</p>
+          <div className="flex gap-4 mt-4">
+            <div>
+              <p className="text-xs opacity-70">Outstanding</p>
+              <p className="font-bold text-lg">{money(due)}</p>
+            </div>
+            <div className="w-px bg-white/20" />
+            <div>
+              <p className="text-xs opacity-70">Net</p>
+              <p className="font-bold text-lg flex items-center gap-1">
+                {net >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                {money(Math.abs(net))}
+              </p>
+            </div>
+            {overdue > 0 && (
+              <>
+                <div className="w-px bg-white/20" />
+                <div>
+                  <p className="text-xs opacity-70">Overdue</p>
+                  <p className="font-bold text-lg text-red-200">{money(overdue)}</p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
 
-      <Section title="Lease expiry" action={<Link className="text-xs font-semibold text-primary" to="/lease-expiry">Open tracker</Link>}>
-        {expiring.length === 0 ? <Card className="rounded-2xl p-4 text-sm text-muted-foreground">No leases expiring in the next 60 days.</Card> : expiring.map((tenancy) => (
-          <RowCard
-            key={tenancy.id}
-            to={tenancy.room_id ? `/rooms/${tenancy.room_id}` : tenancy.property_id ? `/properties/${tenancy.property_id}` : '/lease-expiry'}
-            icon={CalendarClock}
-            title={tenancy.tenant_name}
-            subtitle={`Ends ${prettyDate(tenancy.lease_end)}`}
-            badge={<StatusBadge status={tenancy.lease.status} label={tenancy.lease.label} />}
-          />
-        ))}
-      </Section>
+      {/* Metrics scroll */}
+      <div className="flex gap-3 overflow-x-auto px-5 pb-1 scrollbar-hide mb-6">
+        <MetricCard icon={DollarSign} label="Rent due" value={money(due)} tone="amber" />
+        <MetricCard icon={CheckCircle2} label="Collected" value={money(collected)} tone="emerald" />
+        {overdue > 0 && <MetricCard icon={AlertTriangle} label="Overdue" value={money(overdue)} tone="red" />}
+        <MetricCard icon={net >= 0 ? TrendingUp : TrendingDown} label="Net cashflow" value={`${net >= 0 ? '+' : '-'}${money(Math.abs(net))}`} tone="blue" />
+      </div>
 
-      <Section title="Open repairs" action={<Link className="text-xs font-semibold text-primary" to="/maintenance">Manage</Link>}>
-        {openRepairs.length === 0 ? <Card className="rounded-2xl p-4 text-sm text-muted-foreground">No open repair requests.</Card> : openRepairs.map((item) => (
-          <RowCard
-            key={item.id}
-            to={`/maintenance/${item.id}`}
-            icon={Wrench}
-            title={item.title}
-            subtitle={`${item.category} · ${prettyDate(item.submitted_at)}`}
-            badge={<StatusBadge status={item.status} />}
-          />
-        ))}
-      </Section>
+      <div className="px-5 space-y-6">
+        {/* Action required */}
+        <section>
+          <SectionHeader title="Action required" linkTo="/properties" linkLabel="Properties" />
+          {actionCharges.length === 0 ? (
+            <div className="bg-white rounded-2xl p-4 text-sm text-muted-foreground border border-border/40 text-center">
+              ✅ No urgent actions right now
+            </div>
+          ) : actionCharges.map((charge) => (
+            <div key={charge.id} className="mb-2">
+              <ActionRow
+                to={charge.property_id ? `/properties/${charge.property_id}` : '/properties'}
+                icon={charge.status === 'paid' ? CheckCircle2 : AlertTriangle}
+                iconBg={charge.status === 'paid' ? 'bg-emerald-50' : 'bg-red-50'}
+                title={charge.status === 'paid' ? 'Payment awaiting confirmation' : 'Overdue rent'}
+                subtitle={`${money(charge.amount)} · Due ${prettyDate(charge.due_date)}`}
+                badge={<StatusBadge status={charge.status === 'paid' ? 'pending' : 'overdue'} label={charge.status === 'paid' ? 'Confirm' : 'Overdue'} />}
+              />
+            </div>
+          ))}
+        </section>
 
-      <Section title="Reports" action={<Link className="text-xs font-semibold text-primary" to="/reports">View all</Link>}>
-        <RowCard to="/reports" icon={BarChart2} title="Financial & Vacancy Reports" subtitle="Income, expenses, payment trends" />
-      </Section>
+        {/* Open repairs */}
+        {openRepairs.length > 0 && (
+          <section>
+            <SectionHeader title="Open repairs" linkTo="/maintenance" linkLabel="Manage" />
+            {openRepairs.map((item) => (
+              <div key={item.id} className="mb-2">
+                <ActionRow
+                  to={`/maintenance/${item.id}`}
+                  icon={Wrench}
+                  iconBg="bg-orange-50"
+                  title={item.title}
+                  subtitle={prettyDate(item.submitted_at)}
+                  badge={<StatusBadge status={item.status} />}
+                />
+              </div>
+            ))}
+          </section>
+        )}
 
-      <Section title="Messages" action={<Link className="text-xs font-semibold text-primary" to="/messages">Inbox</Link>}>
-        {recentMessages.length === 0 ? <Card className="rounded-2xl p-4 text-sm text-muted-foreground">No recent conversations yet.</Card> : recentMessages.map((chat) => (
-          <RowCard
-            key={chat.id}
-            to={`/chat/${chat.id}`}
-            icon={MessageCircle}
-            title={chat.title}
-            subtitle={chat.last_message || 'Open chat'}
-            badge={<span className="text-[11px] font-medium text-muted-foreground">{prettyDate(chat.last_message_at, 'Recently')}</span>}
+        {/* Expiring leases */}
+        {expiring.length > 0 && (
+          <section>
+            <SectionHeader title="Lease expiry" linkTo="/lease-expiry" linkLabel="Tracker" />
+            {expiring.map((t) => (
+              <div key={t.id} className="mb-2">
+                <ActionRow
+                  to={t.room_id ? `/rooms/${t.room_id}` : `/properties/${t.property_id}`}
+                  icon={CalendarClock}
+                  iconBg="bg-violet-50"
+                  title={t.tenant_name || 'Tenant'}
+                  subtitle={`Ends ${prettyDate(t.lease_end)}`}
+                  badge={<StatusBadge status={t.lease.status} label={t.lease.label} />}
+                />
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* Messages */}
+        <section>
+          <SectionHeader title="Recent messages" linkTo="/messages" linkLabel="Inbox" />
+          {recentChats.length === 0 ? (
+            <div className="bg-white rounded-2xl p-4 text-sm text-muted-foreground border border-border/40 text-center">
+              No conversations yet
+            </div>
+          ) : recentChats.map((chat) => (
+            <div key={chat.id} className="mb-2">
+              <ActionRow
+                to={`/chat/${chat.id}`}
+                icon={MessageCircle}
+                iconBg="bg-blue-50"
+                title={chat.title}
+                subtitle={chat.last_message || 'Open chat'}
+                badge={<span className="text-[11px] text-muted-foreground shrink-0">{prettyDate(chat.last_message_at, '')}</span>}
+              />
+            </div>
+          ))}
+        </section>
+
+        {/* Reports shortcut */}
+        <section>
+          <SectionHeader title="Reports" />
+          <ActionRow
+            to="/reports"
+            icon={BarChart2}
+            iconBg="bg-primary/10"
+            title="Financial & Vacancy Reports"
+            subtitle="Income, expenses, payment trends"
+            badge={<ChevronRight className="w-4 h-4 text-muted-foreground" />}
           />
-        ))}
-      </Section>
+        </section>
+      </div>
     </div>
   );
 }
