@@ -19,6 +19,7 @@ export default function Properties() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: '', address: '', city: '', state: '', postcode: '', type: 'house' });
+  const [performanceProperty, setPerformanceProperty] = useState(null);
 
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['properties'],
