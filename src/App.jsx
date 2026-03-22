@@ -60,6 +60,7 @@ const AuthenticatedApp = () => {
     }>
     <Routes>
       <Route path="/accept-invite" element={<AcceptInvite />} />
+      <Route path="/pricing" element={<Pricing />} />
       <Route element={<RoleLayout />}>
         <Route path="/" element={<RoleRouter />} />
         <Route path="/properties" element={<Properties />} />
