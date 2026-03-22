@@ -1,54 +1,39 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/lib/AuthContext';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { MessageCircle, Plus, Users } from 'lucide-react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { MessageCircle, Users } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { Card } from '@/components/ui/card';
 import PageHeader from '@/components/PageHeader';
-import EmptyState from '@/components/EmptyState';
-import { formatDistanceToNow } from 'date-fns';
+import { normalizeChat, prettyDate } from '@/lib/propertyApp';
 
 export default function Messages() {
   const { user } = useAuth();
-
-  const { data: chats = [] } = useQuery({
-    queryKey: ['chats'],
-    queryFn: () => base44.entities.Chat.list('-last_message_at'),
-  });
-
-  const myChats = chats.filter(c => c.participant_ids?.includes(user?.id));
+  const { data: chatsRaw = [] } = useQuery({ queryKey: ['messages'], queryFn: () => base44.entities.Chat.list('-last_message_at') });
+  const chats = chatsRaw.map(normalizeChat).filter(c => c.participant_ids?.includes(user?.id));
 
   return (
     <div>
-      <PageHeader title="Messages" />
-      <div className="px-4 space-y-3 mt-2">
-        {myChats.length === 0 && (
-          <EmptyState icon={MessageCircle} title="No conversations" description="Start a conversation with a tenant or landlord" />
-        )}
-        {myChats.map(chat => (
+      <PageHeader title="Messages" subtitle="Direct chat and household group chat" />
+      <div className="space-y-3 px-4 py-4">
+        {chats.map((chat) => (
           <Link key={chat.id} to={`/chat/${chat.id}`}>
-            <Card className="p-4 hover:shadow-md transition-shadow">
+            <Card className="rounded-3xl p-4 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-full ${chat.type === 'household' ? 'bg-accent' : 'bg-secondary'}`}>
-                  {chat.type === 'household' ? <Users className="w-4 h-4 text-primary" /> : <MessageCircle className="w-4 h-4 text-muted-foreground" />}
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100">
+                  {chat.type === 'household' ? <Users className="h-5 w-5 text-primary" /> : <MessageCircle className="h-5 w-5 text-primary" />}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-medium text-sm truncate">{chat.name || 'Direct Message'}</h3>
-                  {chat.last_message && (
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">{chat.last_message}</p>
-                  )}
+                  <p className="truncate font-semibold">{chat.title}</p>
+                  <p className="truncate text-sm text-muted-foreground">{chat.last_message || 'Open conversation'}</p>
                 </div>
-                {chat.last_message_at && (
-                  <span className="text-[10px] text-muted-foreground shrink-0">
-                    {formatDistanceToNow(new Date(chat.last_message_at), { addSuffix: false })}
-                  </span>
-                )}
+                <p className="text-[11px] text-muted-foreground">{prettyDate(chat.last_message_at, 'Now')}</p>
               </div>
             </Card>
           </Link>
         ))}
+        {chats.length === 0 && <Card className="rounded-3xl p-8 text-center text-sm text-muted-foreground shadow-sm">No conversations yet.</Card>}
       </div>
     </div>
   );
