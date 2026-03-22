@@ -5,7 +5,7 @@ module.exports = {
   theme: {
   	extend: {
       fontFamily: {
-        inter: ['var(--font-inter)'],
+        jakarta: ['var(--font-jakarta)'],
       },
   		borderRadius: {
   			lg: 'var(--radius)',
