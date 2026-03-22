@@ -20,12 +20,21 @@ export default function MaintenanceDetail() {
     queryFn: async () => { const list = await base44.entities.MaintenanceRequest.filter({ id }); return list[0]; },
   });
 
+  const qKey = ['maintenanceRequest', id];
+
   const updateStatus = useMutation({
     mutationFn: (status) => base44.entities.MaintenanceRequest.update(id, {
       status,
       ...(status === 'completed' ? { resolved_date: format(new Date(), 'yyyy-MM-dd') } : {})
     }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['maintenanceRequest', id] }),
+    onMutate: async (status) => {
+      await queryClient.cancelQueries({ queryKey: qKey });
+      const prev = queryClient.getQueryData(qKey);
+      queryClient.setQueryData(qKey, old => old ? { ...old, status } : old);
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => queryClient.setQueryData(qKey, ctx.prev),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qKey }),
   });
 
   if (!request) return <div className="p-4">Loading...</div>;

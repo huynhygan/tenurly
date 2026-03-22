@@ -11,13 +11,17 @@ import { normalizeChat, prettyDate } from '@/lib/propertyApp';
 
 export default function Messages() {
   const { user } = useAuth();
-  const { data: chatsRaw = [] } = useQuery({ queryKey: ['messages'], queryFn: () => base44.entities.Chat.list('-last_message_at') });
+  const { data: chatsRaw = [], refetch } = useQuery({ queryKey: ['messages'], queryFn: () => base44.entities.Chat.list('-last_message_at') });
   const chats = chatsRaw.map(normalizeChat).filter(c => c.participant_ids?.includes(user?.id));
+
+  const onRefresh = useCallback(() => refetch(), [refetch]);
+  const { containerRef, isRefreshing } = usePullToRefresh(onRefresh);
 
   return (
     <div>
       <PageHeader title="Messages" subtitle="Direct chat and household group chat" />
-      <div className="space-y-3 px-4 py-4">
+      {isRefreshing && <div className="text-center text-xs text-muted-foreground py-1">Refreshing…</div>}
+      <div ref={containerRef} className="space-y-3 px-4 py-4">
         {chats.map((chat) => (
           <Link key={chat.id} to={`/chat/${chat.id}`}>
             <Card className="rounded-3xl p-4 shadow-sm">
