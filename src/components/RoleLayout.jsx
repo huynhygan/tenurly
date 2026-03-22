@@ -5,6 +5,7 @@ import BottomNav from './BottomNav';
 import ModeSwitcher from './ModeSwitcher';
 import PageTransition from './PageTransition';
 import { useTabHistory } from '@/lib/TabHistoryContext';
+import { RouteGuard } from '@/lib/roleGuard';
 
 const TAB_ROOTS = ['/', '/properties', '/messages', '/notifications', '/settings', '/rent', '/repairs', '/documents'];
 

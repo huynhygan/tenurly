@@ -54,7 +54,7 @@ export default function Documents() {
         title="Documents"
         back
         action={
-          user?.role === 'landlord' && (
+          currentMode === 'landlord' && (
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild><Button size="sm" className="gap-1"><Plus className="w-4 h-4" />Upload</Button></DialogTrigger>
               <DialogContent className="max-w-sm">

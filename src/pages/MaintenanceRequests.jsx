@@ -11,8 +11,8 @@ import EmptyState from '@/components/EmptyState';
 import usePullToRefresh from '@/hooks/usePullToRefresh';
 
 export default function MaintenanceRequests() {
-  const { user } = useAuth();
-  const isLandlord = user?.role === 'landlord';
+  const { user, currentMode } = useAuth();
+  const isLandlord = currentMode === 'landlord';
 
   const { data: requests = [], refetch } = useQuery({
     queryKey: ['maintenanceRequests'],

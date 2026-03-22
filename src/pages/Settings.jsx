@@ -35,8 +35,7 @@ export default function Settings() {
     setSwitching(true);
     await switchMode(mode);
     setSwitching(false);
-    // Navigate to root — RoleRouter will redirect to correct dashboard based on new mode
-    window.location.href = '/';
+    navigate('/');
   };
 
   const handleDeleteAccount = async () => {
@@ -52,8 +51,8 @@ export default function Settings() {
   };
 
   const userRoles = user?.roles || [];
-  const hasLandlord = userRoles.includes('landlord') || user?.role === 'landlord';
-  const hasTenant = userRoles.includes('tenant') || user?.role !== 'landlord';
+  const hasLandlord = userRoles.includes('landlord');
+  const hasTenant = userRoles.includes('tenant');
   const canSwitch = hasLandlord && hasTenant;
 
   return (
