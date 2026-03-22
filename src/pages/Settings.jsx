@@ -61,52 +61,63 @@ export default function Settings() {
           </div>
         </Card>
 
-        {/* Mode Switcher — only shown if user has both roles */}
-        {canSwitch && (
-          <Card className="p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />
-              <h3 className="text-sm font-semibold">Switch Mode</h3>
-            </div>
-            <p className="text-xs text-muted-foreground">You have both landlord and tenant access. Switch how you view the app.</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => handleSwitchMode('landlord')}
-                disabled={switching}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                  currentMode === 'landlord'
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border bg-card hover:bg-muted/40'
-                }`}
-              >
-                <Building2 className={`w-5 h-5 ${currentMode === 'landlord' ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className={`text-xs font-medium ${currentMode === 'landlord' ? 'text-primary' : 'text-muted-foreground'}`}>
-                  Landlord
-                </span>
-                {currentMode === 'landlord' && (
-                  <span className="text-[10px] text-primary font-medium">Active</span>
-                )}
-              </button>
-              <button
-                onClick={() => handleSwitchMode('tenant')}
-                disabled={switching}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                  currentMode === 'tenant'
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border bg-card hover:bg-muted/40'
-                }`}
-              >
-                <Home className={`w-5 h-5 ${currentMode === 'tenant' ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className={`text-xs font-medium ${currentMode === 'tenant' ? 'text-primary' : 'text-muted-foreground'}`}>
-                  Tenant
-                </span>
-                {currentMode === 'tenant' && (
-                  <span className="text-[10px] text-primary font-medium">Active</span>
-                )}
-              </button>
-            </div>
-          </Card>
-        )}
+        {/* App Mode */}
+        <Card className="overflow-hidden">
+          <div className="px-4 pt-4 pb-3 border-b border-border">
+            <h3 className="text-sm font-semibold">App Mode</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {canSwitch ? 'You have access to both modes. Tap to switch.' : 'Your current access level.'}
+            </p>
+          </div>
+
+          {/* Landlord option */}
+          {hasLandlord && (
+            <button
+              onClick={() => canSwitch && handleSwitchMode('landlord')}
+              disabled={switching || !canSwitch}
+              className={`w-full flex items-center gap-4 px-4 py-4 transition-colors ${
+                currentMode === 'landlord' ? 'bg-primary/5' : canSwitch ? 'hover:bg-muted/40' : ''
+              } ${hasLandlord && hasTenant ? 'border-b border-border' : ''}`}
+            >
+              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+                currentMode === 'landlord' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              }`}>
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className={`font-semibold ${currentMode === 'landlord' ? 'text-primary' : 'text-foreground'}`}>Landlord Mode</p>
+                <p className="text-xs text-muted-foreground">Manage properties, rent & tenants</p>
+              </div>
+              {currentMode === 'landlord' && (
+                <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">Active</span>
+              )}
+            </button>
+          )}
+
+          {/* Tenant option */}
+          {hasTenant && (
+            <button
+              onClick={() => canSwitch && handleSwitchMode('tenant')}
+              disabled={switching || !canSwitch}
+              className={`w-full flex items-center gap-4 px-4 py-4 transition-colors ${
+                currentMode === 'tenant' ? 'bg-primary/5' : canSwitch ? 'hover:bg-muted/40' : ''
+              }`}
+            >
+              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+                currentMode === 'tenant' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              }`}>
+                <Home className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className={`font-semibold ${currentMode === 'tenant' ? 'text-primary' : 'text-foreground'}`}>Tenant Mode</p>
+                <p className="text-xs text-muted-foreground">View rent, repairs & documents</p>
+              </div>
+              {currentMode === 'tenant' && (
+                <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">Active</span>
+              )}
+            </button>
+          )}
+        </Card>
 
         {/* Contact */}
         <Card className="p-4 space-y-3">
