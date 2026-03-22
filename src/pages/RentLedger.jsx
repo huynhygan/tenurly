@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
@@ -8,11 +8,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
+import BottomSheet from '@/components/BottomSheet';
+import usePullToRefresh from '@/hooks/usePullToRefresh';
 import { format } from 'date-fns';
 
 export default function RentLedger() {
@@ -23,19 +24,27 @@ export default function RentLedger() {
   const [filter, setFilter] = useState('all');
   const [form, setForm] = useState({ tenancy_id: '', amount: '', due_date: '', notes: '' });
 
-  const { data: charges = [] } = useQuery({
-    queryKey: ['rentCharges', propertyId],
+  const chargesKey = ['rentCharges', propertyId];
+  const tenanciesKey = ['tenancies', propertyId];
+
+  const { data: charges = [], refetch: refetchCharges } = useQuery({
+    queryKey: chargesKey,
     queryFn: () => propertyId
       ? base44.entities.RentCharge.filter({ property_id: propertyId })
       : base44.entities.RentCharge.filter({ landlord_id: user?.id }),
   });
 
-  const { data: tenancies = [] } = useQuery({
-    queryKey: ['tenancies', propertyId],
+  const { data: tenancies = [], refetch: refetchTenancies } = useQuery({
+    queryKey: tenanciesKey,
     queryFn: () => propertyId
       ? base44.entities.Tenancy.filter({ property_id: propertyId, status: 'active' })
       : base44.entities.Tenancy.filter({ landlord_id: user?.id, status: 'active' }),
   });
+
+  const onRefresh = useCallback(() => Promise.all([refetchCharges(), refetchTenancies()]), [refetchCharges, refetchTenancies]);
+  const { containerRef, isRefreshing } = usePullToRefresh(onRefresh);
+
+  const tenancyOptions = tenancies.map(t => ({ value: t.id, label: t.tenant_name || t.tenant_email }));
 
   const createCharge = useMutation({
     mutationFn: (data) => {
@@ -50,16 +59,34 @@ export default function RentLedger() {
         status: 'upcoming',
       });
     },
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: chargesKey });
+      const prev = queryClient.getQueryData(chargesKey);
+      const optimistic = { id: `tmp-${Date.now()}`, ...data, amount: parseFloat(data.amount), status: 'upcoming' };
+      queryClient.setQueryData(chargesKey, old => [optimistic, ...(old || [])]);
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => queryClient.setQueryData(chargesKey, ctx.prev),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rentCharges'] });
+      queryClient.invalidateQueries({ queryKey: chargesKey });
       setOpen(false);
       setForm({ tenancy_id: '', amount: '', due_date: '', notes: '' });
     },
   });
 
   const updateStatus = useMutation({
-    mutationFn: ({ id, status }) => base44.entities.RentCharge.update(id, { status, ...(status === 'confirmed' ? { paid_date: format(new Date(), 'yyyy-MM-dd') } : {}) }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['rentCharges'] }),
+    mutationFn: ({ id, status }) => base44.entities.RentCharge.update(id, {
+      status,
+      ...(status === 'confirmed' ? { paid_date: format(new Date(), 'yyyy-MM-dd') } : {})
+    }),
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: chargesKey });
+      const prev = queryClient.getQueryData(chargesKey);
+      queryClient.setQueryData(chargesKey, old => old?.map(c => c.id === id ? { ...c, status } : c));
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => queryClient.setQueryData(chargesKey, ctx.prev),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: chargesKey }),
   });
 
   const filtered = filter === 'all' ? charges : charges.filter(c => c.status === filter);
@@ -78,15 +105,16 @@ export default function RentLedger() {
               <form onSubmit={(e) => { e.preventDefault(); createCharge.mutate(form); }} className="space-y-3">
                 <div>
                   <Label>Tenant</Label>
-                  <Select value={form.tenancy_id} onValueChange={v => {
-                    const t = tenancies.find(x => x.id === v);
-                    setForm({...form, tenancy_id: v, amount: t?.rent_amount?.toString() || form.amount });
-                  }}>
-                    <SelectTrigger><SelectValue placeholder="Select tenant" /></SelectTrigger>
-                    <SelectContent>
-                      {tenancies.map(t => <SelectItem key={t.id} value={t.id}>{t.tenant_name || t.tenant_email}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <BottomSheet
+                    value={form.tenancy_id}
+                    onValueChange={v => {
+                      const t = tenancies.find(x => x.id === v);
+                      setForm({...form, tenancy_id: v, amount: t?.rent_amount?.toString() || form.amount });
+                    }}
+                    options={tenancyOptions}
+                    placeholder="Select tenant"
+                    label="Select Tenant"
+                  />
                 </div>
                 <div><Label>Amount ($)</Label><Input type="number" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} required /></div>
                 <div><Label>Due Date</Label><Input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} required /></div>
@@ -97,7 +125,8 @@ export default function RentLedger() {
           </Dialog>
         }
       />
-      <div className="px-4 space-y-3 mt-2">
+      {isRefreshing && <div className="text-center text-xs text-muted-foreground py-1">Refreshing…</div>}
+      <div ref={containerRef} className="px-4 space-y-3 mt-2">
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
           {['all', 'upcoming', 'due', 'paid', 'overdue', 'confirmed'].map(s => (
             <Button key={s} variant={filter === s ? 'default' : 'outline'} size="sm" onClick={() => setFilter(s)} className="shrink-0 capitalize">
@@ -126,7 +155,7 @@ export default function RentLedger() {
                   <Eye className="w-3 h-3" />View receipt
                 </a>
               )}
-              {(c.status === 'paid') && (
+              {c.status === 'paid' && (
                 <Button size="sm" variant="outline" className="mt-2 gap-1 w-full" onClick={() => updateStatus.mutate({ id: c.id, status: 'confirmed' })}>
                   <Check className="w-3.5 h-3.5" />Confirm Settlement
                 </Button>
