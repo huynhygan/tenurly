@@ -46,3 +46,9 @@ export const normalizeChat = (c) => ({
   ...c,
   title: c.name || 'Chat',
 });
+
+export const normalizeDocument = (d) => ({
+  ...d,
+  title: d.name || 'Untitled',
+  type: d.type || 'other',
+});
