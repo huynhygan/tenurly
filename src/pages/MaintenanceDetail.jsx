@@ -11,9 +11,9 @@ import StatusBadge from '@/components/StatusBadge';
 
 export default function MaintenanceDetail() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { currentMode } = useAuth();
   const queryClient = useQueryClient();
-  const isLandlord = user?.role === 'landlord';
+  const isLandlord = currentMode === 'landlord';
 
   const { data: request } = useQuery({
     queryKey: ['maintenanceRequest', id],
