@@ -79,6 +79,7 @@ const AuthenticatedApp = () => {
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </React.Suspense>
   );
 };
 
