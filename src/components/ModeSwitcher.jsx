@@ -24,7 +24,7 @@ export default function ModeSwitcher() {
   };
 
   return (
-    <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
+    <div className="sticky z-40 bg-background/95 backdrop-blur-md border-b border-border" style={{ top: 'env(safe-area-inset-top)' }}>
       <div className="max-w-lg mx-auto px-4 py-2 flex justify-center">
         <div className="flex items-center bg-muted rounded-xl p-1 gap-1">
           <button
