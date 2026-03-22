@@ -31,6 +31,7 @@ const TenantRepairs     = React.lazy(() => import('./pages/TenantRepairs'));
 const TenantDocuments   = React.lazy(() => import('./pages/TenantDocuments'));
 const AcceptInvite      = React.lazy(() => import('./pages/AcceptInvite'));
 const Pricing           = React.lazy(() => import('./pages/Pricing'));
+const Reports           = React.lazy(() => import('./pages/Reports'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
