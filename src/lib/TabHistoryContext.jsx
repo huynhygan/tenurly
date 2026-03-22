@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useRef, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 // Each tab root path maps to an independent history stack
 const TabHistoryContext = createContext();
@@ -17,6 +17,13 @@ export function TabHistoryProvider({ children }) {
     }
   }, []);
 
+  const popTab = useCallback((tabRoot) => {
+    const stack = stacks.current[tabRoot];
+    if (!stack || stack.length <= 1) return null;
+    stack.pop();
+    return stack[stack.length - 1];
+  }, []);
+
   const getTabPath = useCallback((tabRoot) => {
     const stack = stacks.current[tabRoot];
     if (!stack || stack.length === 0) return tabRoot;
@@ -28,7 +35,7 @@ export function TabHistoryProvider({ children }) {
   }, []);
 
   return (
-    <TabHistoryContext.Provider value={{ pushTab, getTabPath, resetTab }}>
+    <TabHistoryContext.Provider value={{ pushTab, popTab, getTabPath, resetTab }}>
       {children}
     </TabHistoryContext.Provider>
   );
