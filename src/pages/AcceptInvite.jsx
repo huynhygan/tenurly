@@ -62,6 +62,32 @@ export default function AcceptInvite() {
     );
   }
 
+  if (status === 'auth_required') {
+    const returnUrl = window.location.href;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <Card className="max-w-sm w-full p-8 space-y-6 text-center">
+          <div className="flex justify-center">
+            <div className="p-4 rounded-full bg-accent"><Home className="w-8 h-8 text-primary" /></div>
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold">You've been invited!</h1>
+            <p className="text-sm text-muted-foreground">Sign in or create an account to accept your tenancy invite.</p>
+          </div>
+          <div className="space-y-3">
+            <Button className="w-full gap-2" onClick={() => base44.auth.redirectToLogin(returnUrl)}>
+              <LogIn className="w-4 h-4" /> Sign in
+            </Button>
+            <Button variant="outline" className="w-full gap-2" onClick={() => base44.auth.redirectToLogin(returnUrl)}>
+              <UserPlus className="w-4 h-4" /> Create account
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">You'll be brought back to this page after signing in.</p>
+        </Card>
+      </div>
+    );
+  }
+
   if (status === 'accepted') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
