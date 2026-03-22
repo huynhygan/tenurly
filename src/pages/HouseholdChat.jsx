@@ -39,10 +39,15 @@ export default function HouseholdChat() {
     onSuccess: (chat) => navigate(`/chat/${chat.id}`, { replace: true }),
   });
 
+  const hasNavigated = React.useRef(false);
+
   useEffect(() => {
-    if (!isLoading && chats.length > 0) {
+    if (isLoading || hasNavigated.current) return;
+    if (chats.length > 0) {
+      hasNavigated.current = true;
       navigate(`/chat/${chats[0].id}`, { replace: true });
-    } else if (!isLoading && chats.length === 0 && property) {
+    } else if (property && !createChat.isPending) {
+      hasNavigated.current = true;
       createChat.mutate();
     }
   }, [isLoading, chats, property]);

@@ -11,19 +11,12 @@ import { normalizeDocument, prettyDate } from '@/lib/propertyApp';
 export default function TenantDocuments() {
   const { user } = useAuth();
   const { data: tenancies = [] } = useQuery({ queryKey: ['tenant-docs-tenancies', user?.id], queryFn: () => base44.entities.Tenancy.filter({ tenant_id: user?.id }), enabled: !!user?.id });
-  const propertyIds = [...new Set(tenancies.map(t => t.property_id).filter(Boolean))];
+  const activeTenancy = tenancies.find(t => t.status === 'active') || tenancies[0];
 
   const { data: docsRaw = [] } = useQuery({
-    queryKey: ['tenant-documents', propertyIds.join(',')],
-    queryFn: async () => {
-      const all = [];
-      for (const propertyId of propertyIds) {
-        const docs = await base44.entities.Document.filter({ property_id: propertyId });
-        all.push(...docs);
-      }
-      return all;
-    },
-    enabled: propertyIds.length > 0,
+    queryKey: ['tenant-documents', activeTenancy?.id],
+    queryFn: () => base44.entities.Document.filter({ tenancy_id: activeTenancy.id }),
+    enabled: !!activeTenancy?.id,
   });
 
   const docs = docsRaw.map(normalizeDocument).filter(d => d.visible_to_tenant !== false);

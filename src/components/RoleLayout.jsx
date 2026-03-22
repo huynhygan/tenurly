@@ -52,7 +52,9 @@ export default function RoleLayout() {
       <ModeSwitcher />
       <div className="flex-1 overflow-y-auto pb-20" style={{ paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
         <PageTransition>
-          <Outlet />
+          <RouteGuard>
+            <Outlet />
+          </RouteGuard>
         </PageTransition>
       </div>
       <BottomNav mode={currentMode} />
