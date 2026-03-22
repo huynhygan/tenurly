@@ -263,14 +263,12 @@ export default function RoomDetail() {
             <div><Label>Description</Label><Input value={roomForm.description} onChange={e => setRoomForm({...roomForm, description: e.target.value})} placeholder="Optional description" /></div>
             <div>
               <Label>Status</Label>
-              <Select value={roomForm.status} onValueChange={v => setRoomForm({...roomForm, status: v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vacant">Vacant</SelectItem>
-                  <SelectItem value="occupied">Occupied</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                </SelectContent>
-              </Select>
+              <BottomSheet
+                value={roomForm.status}
+                onValueChange={v => setRoomForm({...roomForm, status: v})}
+                options={[{ value: 'vacant', label: 'Vacant' }, { value: 'occupied', label: 'Occupied' }, { value: 'maintenance', label: 'Maintenance' }]}
+                label="Select Status"
+              />
             </div>
             <Button type="submit" className="w-full" disabled={updateRoom.isPending}>
               {updateRoom.isPending ? 'Saving...' : 'Save Changes'}
