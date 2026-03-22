@@ -81,13 +81,15 @@ module.exports = {
   	}
   },
   safelist: [
-    'bg-emerald-50', 'text-emerald-700', 'border-emerald-200',
-    'bg-amber-50', 'text-amber-700', 'border-amber-200',
-    'bg-red-50', 'text-red-700', 'border-red-200',
-    'bg-blue-50', 'text-blue-700', 'border-blue-200',
+    'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'text-emerald-500',
+    'bg-amber-50', 'text-amber-700', 'border-amber-200', 'text-amber-500',
+    'bg-red-50', 'text-red-700', 'border-red-200', 'text-red-500',
+    'bg-blue-50', 'text-blue-700', 'border-blue-200', 'text-blue-500',
     'bg-purple-50', 'text-purple-700', 'border-purple-200',
     'bg-gray-50', 'text-gray-700', 'border-gray-200',
     'bg-orange-50', 'text-orange-700', 'border-orange-200',
+    'bg-violet-50', 'text-violet-500', 'text-violet-700', 'border-violet-200',
+    'from-primary', 'to-orange-400', 'from-red-500', 'to-red-400', 'from-emerald-500', 'to-emerald-400',
   ],
   plugins: [require("tailwindcss-animate")],
 }
