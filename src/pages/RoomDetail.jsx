@@ -89,6 +89,13 @@ export default function RoomDetail() {
   // Update room
   const updateRoom = useMutation({
     mutationFn: (data) => base44.entities.Room.update(id, data),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['room', id] });
+      const prev = queryClient.getQueryData(['room', id]);
+      queryClient.setQueryData(['room', id], old => old ? { ...old, ...data } : old);
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => queryClient.setQueryData(['room', id], ctx.prev),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['room', id] });
       setEditRoomOpen(false);
