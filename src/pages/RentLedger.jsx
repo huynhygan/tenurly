@@ -150,8 +150,8 @@ export default function RentLedger() {
                   <StatusBadge status={c.status} />
                 </div>
               </div>
-              {c.proof_url && (
-                <a href={c.proof_url} target="_blank" rel="noopener" className="flex items-center gap-1 text-xs text-primary mt-2">
+              {c.receipt_url && (
+                <a href={c.receipt_url} target="_blank" rel="noopener" className="flex items-center gap-1 text-xs text-primary mt-2">
                   <Eye className="w-3 h-3" />View receipt
                 </a>
               )}

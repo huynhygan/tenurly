@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 
 export default function Documents() {
   const { propertyId } = useParams();
-  const { user } = useAuth();
+  const { user, currentMode } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'other', file_url: '' });

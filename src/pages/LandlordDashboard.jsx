@@ -69,19 +69,19 @@ export default function LandlordDashboard() {
 
   const { data: chargesRaw = [] } = useQuery({
     queryKey: ['landlord-charges', user?.id],
-    queryFn: () => base44.entities.RentCharge.list('-created_date'),
+    queryFn: () => base44.entities.RentCharge.filter({ landlord_id: user?.id }),
     enabled: !!user?.id,
   });
 
   const { data: expensesRaw = [] } = useQuery({
     queryKey: ['expenses', user?.id],
-    queryFn: () => base44.entities.Expense.list('-date'),
+    queryFn: () => base44.entities.Expense.filter({ landlord_id: user?.id }),
     enabled: !!user?.id,
   });
 
   const { data: maintenanceRaw = [] } = useQuery({
     queryKey: ['maintenance', user?.id],
-    queryFn: () => base44.entities.MaintenanceRequest.list('-created_date'),
+    queryFn: () => base44.entities.MaintenanceRequest.filter({ landlord_id: user?.id }),
     enabled: !!user?.id,
   });
 
@@ -92,10 +92,9 @@ export default function LandlordDashboard() {
   });
 
   const tenancies = tenanciesRaw.map(normalizeTenancy);
-  const propertyIds = new Set(tenancies.map(t => t.property_id));
-  const charges = chargesRaw.map(normalizeCharge).filter(c => !c.property_id || propertyIds.size === 0 || propertyIds.has(c.property_id));
-  const expenses = expensesRaw.map(normalizeExpense).filter(e => !e.property_id || propertyIds.size === 0 || propertyIds.has(e.property_id));
-  const maintenance = maintenanceRaw.map(normalizeMaintenance).filter(m => !m.property_id || propertyIds.size === 0 || propertyIds.has(m.property_id));
+  const charges = chargesRaw.map(normalizeCharge);
+  const expenses = expensesRaw.map(normalizeExpense);
+  const maintenance = maintenanceRaw.map(normalizeMaintenance);
   const chats = chatsRaw.map(normalizeChat).filter(c => c.participant_ids?.includes(user?.id));
 
   const due = charges.filter(c => ['due', 'upcoming', 'pending'].includes(c.status)).reduce((sum, c) => sum + c.amount, 0);
