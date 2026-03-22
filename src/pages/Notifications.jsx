@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
@@ -7,42 +7,53 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
+import usePullToRefresh from '@/hooks/usePullToRefresh';
 import { formatDistanceToNow } from 'date-fns';
 
 const typeIcons = {
-  rent_due: DollarSign,
-  rent_overdue: DollarSign,
-  rent_paid: DollarSign,
-  rent_confirmed: CheckCircle,
-  maintenance_new: Wrench,
-  maintenance_update: Wrench,
-  lease_expiry: CalendarClock,
-  message: MessageCircle,
-  general: Bell,
+  rent_due: DollarSign, rent_overdue: DollarSign, rent_paid: DollarSign,
+  rent_confirmed: CheckCircle, maintenance_new: Wrench, maintenance_update: Wrench,
+  lease_expiry: CalendarClock, message: MessageCircle, general: Bell,
 };
 
 export default function Notifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const qKey = ['notifications'];
 
-  const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications'],
+  const { data: notifications = [], refetch } = useQuery({
+    queryKey: qKey,
     queryFn: () => base44.entities.Notification.filter({ user_id: user?.id }, '-created_date'),
   });
 
+  const onRefresh = useCallback(() => refetch(), [refetch]);
+  const { containerRef, isRefreshing } = usePullToRefresh(onRefresh);
+
   const markRead = useMutation({
     mutationFn: (id) => base44.entities.Notification.update(id, { read: true }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: qKey });
+      const prev = queryClient.getQueryData(qKey);
+      queryClient.setQueryData(qKey, old => old?.map(n => n.id === id ? { ...n, read: true } : n));
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => queryClient.setQueryData(qKey, ctx.prev),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qKey }),
   });
 
   const markAllRead = useMutation({
     mutationFn: async () => {
       const unread = notifications.filter(n => !n.read);
-      for (const n of unread) {
-        await base44.entities.Notification.update(n.id, { read: true });
-      }
+      for (const n of unread) await base44.entities.Notification.update(n.id, { read: true });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: qKey });
+      const prev = queryClient.getQueryData(qKey);
+      queryClient.setQueryData(qKey, old => old?.map(n => ({ ...n, read: true })));
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => queryClient.setQueryData(qKey, ctx.prev),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qKey }),
   });
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -60,7 +71,8 @@ export default function Notifications() {
           )
         }
       />
-      <div className="px-4 space-y-2 mt-2">
+      {isRefreshing && <div className="text-center text-xs text-muted-foreground py-1">Refreshing…</div>}
+      <div ref={containerRef} className="px-4 space-y-2 mt-2">
         {notifications.length === 0 && <EmptyState icon={Bell} title="No notifications" description="You're all caught up!" />}
         {notifications.map(n => {
           const Icon = typeIcons[n.type] || Bell;
