@@ -1,72 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { MessageCircle, Users } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Loader2, XCircle } from 'lucide-react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card } from '@/components/ui/card';
+import PageHeader from '@/components/PageHeader';
+import { normalizeChat, prettyDate } from '@/lib/propertyApp';
 
-export default function AcceptInvite() {
+export default function Messages() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  const [status, setStatus] = useState('loading');
-  const [invite, setInvite] = useState(null);
-
-  useEffect(() => {
-    const accept = async () => {
-      if (!code || !user) return;
-      const invites = await base44.entities.Invite.filter({ code, status: 'pending' });
-      if (invites.length === 0) {
-        setStatus('invalid');
-        return;
-      }
-      const inv = invites[0];
-      setInvite(inv);
-
-      // Update invite
-      await base44.entities.Invite.update(inv.id, { status: 'accepted' });
-
-      // Update tenancy with tenant_id
-      if (inv.tenancy_id) {
-        await base44.entities.Tenancy.update(inv.tenancy_id, { tenant_id: user.id });
-      }
-
-      // Set user role
-      await base44.auth.updateMe({ role: 'tenant' });
-
-      setStatus('success');
-    };
-    accept();
-  }, [code, user]);
+  const { data: chatsRaw = [] } = useQuery({ queryKey: ['messages'], queryFn: () => base44.entities.Chat.list('-last_message_at') });
+  const chats = chatsRaw.map(normalizeChat).filter(c => c.participant_ids?.includes(user?.id));
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="p-8 text-center max-w-sm w-full">
-        {status === 'loading' && (
-          <div className="space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
-            <p className="text-sm text-muted-foreground">Accepting invite...</p>
-          </div>
-        )}
-        {status === 'success' && (
-          <div className="space-y-3">
-            <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto" />
-            <h2 className="font-bold text-lg">Welcome!</h2>
-            <p className="text-sm text-muted-foreground">Your invite has been accepted. You're now set up as a tenant.</p>
-            <Button onClick={() => navigate('/')} className="w-full">Go to Dashboard</Button>
-          </div>
-        )}
-        {status === 'invalid' && (
-          <div className="space-y-3">
-            <XCircle className="w-8 h-8 text-destructive mx-auto" />
-            <h2 className="font-bold text-lg">Invalid Invite</h2>
-            <p className="text-sm text-muted-foreground">This invite link is invalid or has already been used.</p>
-            <Button onClick={() => navigate('/')} variant="outline" className="w-full">Go Home</Button>
-          </div>
-        )}
-      </Card>
+    <div>
+      <PageHeader title="Messages" subtitle="Direct chat and household group chat" />
+      <div className="space-y-3 px-4 py-4">
+        {chats.map((chat) => (
+          <Link key={chat.id} to={`/chat/${chat.id}`}>
+            <Card className="rounded-3xl p-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100">
+                  {chat.type === 'household' ? <Users className="h-5 w-5 text-primary" /> : <MessageCircle className="h-5 w-5 text-primary" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">{chat.title}</p>
+                  <p className="truncate text-sm text-muted-foreground">{chat.last_message || 'Open conversation'}</p>
+                </div>
+                <p className="text-[11px] text-muted-foreground">{prettyDate(chat.last_message_at, 'Now')}</p>
+              </div>
+            </Card>
+          </Link>
+        ))}
+        {chats.length === 0 && <Card className="rounded-3xl p-8 text-center text-sm text-muted-foreground shadow-sm">No conversations yet.</Card>}
+      </div>
     </div>
   );
 }
