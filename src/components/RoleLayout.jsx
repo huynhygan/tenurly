@@ -50,7 +50,14 @@ export default function RoleLayout() {
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       <ModeSwitcher />
-      <div className="flex-1 overflow-y-auto pb-20" style={{ paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}>
+      <div
+        className="flex-1 overflow-y-auto"
+        style={{
+          paddingBottom: 'calc(60px + env(safe-area-inset-bottom))',
+          paddingLeft: 'env(safe-area-inset-left)',
+          paddingRight: 'env(safe-area-inset-right)'
+        }}
+      >
         <PageTransition>
           <RouteGuard>
             <Outlet />
