@@ -81,17 +81,19 @@ export default function Properties() {
                 <div><Label>Postcode</Label><Input value={form.postcode} onChange={e => setForm({...form, postcode: e.target.value})} /></div>
                 <div>
                   <Label>Type</Label>
-                  <Select value={form.type} onValueChange={v => setForm({...form, type: v})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="house">House</SelectItem>
-                      <SelectItem value="apartment">Apartment</SelectItem>
-                      <SelectItem value="unit">Unit</SelectItem>
-                      <SelectItem value="townhouse">Townhouse</SelectItem>
-                      <SelectItem value="share_house">Share House</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <BottomSheet
+                    value={form.type}
+                    onValueChange={v => setForm({...form, type: v})}
+                    options={[
+                      { value: 'house', label: 'House' },
+                      { value: 'apartment', label: 'Apartment' },
+                      { value: 'unit', label: 'Unit' },
+                      { value: 'townhouse', label: 'Townhouse' },
+                      { value: 'share_house', label: 'Share House' },
+                      { value: 'other', label: 'Other' },
+                    ]}
+                    label="Select Type"
+                  />
                 </div>
               </div>
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>
