@@ -1,115 +1,98 @@
 import React from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@/lib/AuthContext';
-import { DollarSign, CalendarClock, Wrench, FileText, ArrowRight, Settings } from 'lucide-react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
-import StatCard from '@/components/StatCard';
+import { CalendarClock, CreditCard, FileText, MessageCircle, Wrench } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/StatusBadge';
-import { format, differenceInDays, parseISO } from 'date-fns';
+import { leaseSummary, money, normalizeCharge, normalizeMaintenance, normalizeTenancy, prettyDate } from '@/lib/propertyApp';
 
 export default function TenantDashboard() {
   const { user } = useAuth();
 
-  const { data: tenancies = [] } = useQuery({
-    queryKey: ['myTenancies'],
-    queryFn: () => base44.entities.Tenancy.filter({ tenant_id: user?.id, status: 'active' }),
+  const { data: tenanciesRaw = [] } = useQuery({
+    queryKey: ['tenant-tenancies', user?.id],
+    queryFn: () => base44.entities.Tenancy.filter({ tenant_id: user?.id }),
+    enabled: !!user?.id,
   });
 
-  const { data: rentCharges = [] } = useQuery({
-    queryKey: ['myRentCharges'],
+  const { data: chargesRaw = [] } = useQuery({
+    queryKey: ['tenant-charges', user?.id],
     queryFn: () => base44.entities.RentCharge.filter({ tenant_id: user?.id }),
+    enabled: !!user?.id,
   });
 
-  const { data: maintenanceRequests = [] } = useQuery({
-    queryKey: ['myMaintenance'],
+  const { data: repairsRaw = [] } = useQuery({
+    queryKey: ['tenant-repairs', user?.id],
     queryFn: () => base44.entities.MaintenanceRequest.filter({ tenant_id: user?.id }),
+    enabled: !!user?.id,
   });
 
-  const activeTenancy = tenancies[0];
-  const now = new Date();
+  const tenancies = tenanciesRaw.map(normalizeTenancy);
+  const tenancy = tenancies.find(t => t.status === 'active') || tenancies[0];
+  const charges = chargesRaw.map(normalizeCharge);
+  const repairs = repairsRaw.map(normalizeMaintenance);
 
-  const nextDue = rentCharges
-    .filter(r => ['upcoming', 'due'].includes(r.status))
-    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0];
-
-  const overdue = rentCharges.filter(r => r.status === 'overdue');
-  const openRepairs = maintenanceRequests.filter(m => ['open', 'in_progress'].includes(m.status)).length;
-
-  const leaseEnd = activeTenancy?.lease_end;
-  const daysToExpiry = leaseEnd ? differenceInDays(parseISO(leaseEnd), now) : null;
+  const nextDue = charges.filter(c => ['upcoming', 'due', 'pending', 'overdue'].includes(c.status)).sort((a,b) => new Date(a.due_date) - new Date(b.due_date))[0];
+  const lease = leaseSummary(tenancy?.lease_end);
+  const openRepairs = repairs.filter(r => !['completed', 'closed'].includes(r.status)).length;
 
   return (
-    <div className="space-y-6 p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Home</h1>
-          <p className="text-sm text-muted-foreground">Hi, {user?.full_name?.split(' ')[0]}</p>
-        </div>
-        <Link to="/settings"><Button variant="ghost" size="icon"><Settings className="w-5 h-5" /></Button></Link>
-      </div>
+    <div className="space-y-5 px-4 py-5">
+      <header className="space-y-1">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tenant home</p>
+        <h1 className="text-3xl font-bold">Hi, {user?.full_name?.split(' ')[0] || 'there'}</h1>
+        <p className="text-sm text-muted-foreground">See your next rent, lease expiry and repairs in one place.</p>
+      </header>
 
-      {activeTenancy && (
-        <Card className="p-4 bg-primary text-primary-foreground">
-          <p className="text-xs font-medium opacity-80">Your room</p>
-          <h2 className="text-lg font-bold mt-0.5">{activeTenancy.tenant_name}</h2>
-          <div className="flex items-center gap-4 mt-2 text-sm opacity-90">
-            <span>${activeTenancy.rent_amount} / {activeTenancy.rent_frequency}</span>
-            {leaseEnd && <span>Lease ends {leaseEnd}</span>}
+      <Card className="rounded-3xl bg-primary p-5 text-primary-foreground shadow-sm">
+        <p className="text-xs font-medium opacity-80">Next rent due</p>
+        <h2 className="mt-1 text-3xl font-bold">{nextDue ? money(nextDue.amount) : 'No charge due'}</h2>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs opacity-80">Due date</p>
+            <p className="font-semibold">{prettyDate(nextDue?.due_date, 'Not scheduled')}</p>
           </div>
-        </Card>
-      )}
+          {nextDue && <StatusBadge status={nextDue.status} label={nextDue.status === 'pending' ? 'Waiting review' : undefined} />}
+        </div>
+      </Card>
 
       <div className="grid grid-cols-2 gap-3">
-        <StatCard
-          icon={DollarSign}
-          label="Next Due"
-          value={nextDue ? `$${nextDue.amount}` : '-'}
-          sublabel={nextDue?.due_date}
-        />
-        <StatCard
-          icon={DollarSign}
-          label="Overdue"
-          value={overdue.length > 0 ? `$${overdue.reduce((s, r) => s + r.amount, 0)}` : '$0'}
-          iconColor={overdue.length > 0 ? 'text-destructive' : 'text-primary'}
-        />
-        <StatCard icon={Wrench} label="Open Repairs" value={openRepairs} />
-        <StatCard
-          icon={CalendarClock}
-          label="Lease Expiry"
-          value={daysToExpiry !== null ? `${daysToExpiry}d` : '-'}
-          sublabel={daysToExpiry !== null && daysToExpiry <= 60 ? 'Expiring soon' : undefined}
-        />
+        <Card className="rounded-3xl p-4 shadow-sm">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-50 text-violet-700"><CalendarClock className="h-5 w-5" /></div>
+          <p className="text-xs text-muted-foreground">Lease expiry</p>
+          <p className="mt-1 text-xl font-bold">{lease.days === null ? '—' : `${lease.days}d`}</p>
+          <div className="mt-2"><StatusBadge status={lease.status} label={lease.label} /></div>
+        </Card>
+        <Card className="rounded-3xl p-4 shadow-sm">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-700"><Wrench className="h-5 w-5" /></div>
+          <p className="text-xs text-muted-foreground">Open repairs</p>
+          <p className="mt-1 text-xl font-bold">{openRepairs}</p>
+          <p className="mt-2 text-xs text-muted-foreground">Track maintenance progress</p>
+        </Card>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-3">
+        <Link to="/rent"><Button className="h-12 w-full rounded-2xl">I've Paid / Payments</Button></Link>
+        <Link to="/repairs"><Button variant="outline" className="h-12 w-full rounded-2xl">Request Repair</Button></Link>
+      </div>
+
+      <div className="space-y-3">
         <Link to="/rent">
-          <Card className="p-4 flex items-center justify-between hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3">
-              <DollarSign className="w-5 h-5 text-primary" />
-              <span className="font-medium text-sm">Rent & Payments</span>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
-          </Card>
-        </Link>
-        <Link to="/repairs">
-          <Card className="p-4 flex items-center justify-between hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3">
-              <Wrench className="w-5 h-5 text-primary" />
-              <span className="font-medium text-sm">Maintenance Requests</span>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
+          <Card className="rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center gap-3"><CreditCard className="h-5 w-5 text-primary" /><div><p className="font-semibold">Payments</p><p className="text-xs text-muted-foreground">View rent history and upload receipts</p></div></div>
           </Card>
         </Link>
         <Link to="/documents">
-          <Card className="p-4 flex items-center justify-between hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5 text-primary" />
-              <span className="font-medium text-sm">Lease Documents</span>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
+          <Card className="rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center gap-3"><FileText className="h-5 w-5 text-primary" /><div><p className="font-semibold">Lease documents</p><p className="text-xs text-muted-foreground">Rental agreement, bond receipt and notices</p></div></div>
+          </Card>
+        </Link>
+        <Link to="/messages">
+          <Card className="rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center gap-3"><MessageCircle className="h-5 w-5 text-primary" /><div><p className="font-semibold">Messages</p><p className="text-xs text-muted-foreground">Chat with landlord and household</p></div></div>
           </Card>
         </Link>
       </div>
