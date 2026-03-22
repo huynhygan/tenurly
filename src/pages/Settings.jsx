@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { User, Phone, LogOut, Building2, Home, ArrowLeftRight } from 'lucide-react';
+import { User, LogOut, Building2, Home, Trash2, AlertTriangle } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PageHeader from '@/components/PageHeader';
 import { toast } from "sonner";
 
@@ -14,6 +15,9 @@ export default function Settings() {
   const [phone, setPhone] = useState('');
   const [saving, setSaving] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (user?.phone) setPhone(user.phone);
@@ -32,6 +36,18 @@ export default function Settings() {
     await switchMode(mode);
     setSwitching(false);
     toast.success(`Switched to ${mode === 'landlord' ? 'Landlord' : 'Tenant'} view`);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== 'DELETE') return;
+    setDeleting(true);
+    try {
+      await base44.entities.User.delete(user.id);
+      await base44.auth.logout();
+    } catch {
+      toast.error('Could not delete account. Please contact support.');
+      setDeleting(false);
+    }
   };
 
   const userRoles = user?.roles || [];
@@ -134,6 +150,49 @@ export default function Settings() {
         <Button variant="outline" className="w-full gap-2 text-destructive" onClick={() => base44.auth.logout()}>
           <LogOut className="w-4 h-4" /> Sign Out
         </Button>
+
+        <button
+          onClick={() => setDeleteOpen(true)}
+          className="w-full text-center text-xs text-muted-foreground underline underline-offset-2 py-1"
+        >
+          Delete account
+        </button>
+
+        {/* Delete account dialog */}
+        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="w-5 h-5" /> Delete Account
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                This will permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+              <div>
+                <Label className="text-sm">Type <span className="font-bold text-foreground">DELETE</span> to confirm</Label>
+                <Input
+                  className="mt-1"
+                  value={deleteConfirm}
+                  onChange={e => setDeleteConfirm(e.target.value)}
+                  placeholder="DELETE"
+                />
+              </div>
+              <Button
+                variant="destructive"
+                className="w-full gap-2"
+                disabled={deleteConfirm !== 'DELETE' || deleting}
+                onClick={handleDeleteAccount}
+              >
+                <Trash2 className="w-4 h-4" />
+                {deleting ? 'Deleting...' : 'Permanently Delete Account'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <div className="h-4" />
       </div>
     </div>
   );
