@@ -8,25 +8,26 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 import RoleLayout from './components/RoleLayout';
-import RoleRouter from './pages/RoleRouter';
-import Properties from './pages/Properties';
-import PropertyDetail from './pages/PropertyDetail';
-import RoomDetail from './pages/RoomDetail';
-import RentLedger from './pages/RentLedger';
-import Expenses from './pages/Expenses';
-import Documents from './pages/Documents';
-import MaintenanceRequests from './pages/MaintenanceRequests';
-import MaintenanceDetail from './pages/MaintenanceDetail';
-import Messages from './pages/Messages';
-import ChatView from './pages/ChatView';
-import HouseholdChat from './pages/HouseholdChat';
-import Notifications from './pages/Notifications';
-import LeaseExpiry from './pages/LeaseExpiry';
-import Settings from './pages/Settings';
-import TenantRent from './pages/TenantRent';
-import TenantRepairs from './pages/TenantRepairs';
-import TenantDocuments from './pages/TenantDocuments';
-import AcceptInvite from './pages/AcceptInvite';
+
+const RoleRouter        = React.lazy(() => import('./pages/RoleRouter'));
+const Properties        = React.lazy(() => import('./pages/Properties'));
+const PropertyDetail    = React.lazy(() => import('./pages/PropertyDetail'));
+const RoomDetail        = React.lazy(() => import('./pages/RoomDetail'));
+const RentLedger        = React.lazy(() => import('./pages/RentLedger'));
+const Expenses          = React.lazy(() => import('./pages/Expenses'));
+const Documents         = React.lazy(() => import('./pages/Documents'));
+const MaintenanceRequests = React.lazy(() => import('./pages/MaintenanceRequests'));
+const MaintenanceDetail = React.lazy(() => import('./pages/MaintenanceDetail'));
+const Messages          = React.lazy(() => import('./pages/Messages'));
+const ChatView          = React.lazy(() => import('./pages/ChatView'));
+const HouseholdChat     = React.lazy(() => import('./pages/HouseholdChat'));
+const Notifications     = React.lazy(() => import('./pages/Notifications'));
+const LeaseExpiry       = React.lazy(() => import('./pages/LeaseExpiry'));
+const Settings          = React.lazy(() => import('./pages/Settings'));
+const TenantRent        = React.lazy(() => import('./pages/TenantRent'));
+const TenantRepairs     = React.lazy(() => import('./pages/TenantRepairs'));
+const TenantDocuments   = React.lazy(() => import('./pages/TenantDocuments'));
+const AcceptInvite      = React.lazy(() => import('./pages/AcceptInvite'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
