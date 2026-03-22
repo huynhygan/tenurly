@@ -77,6 +77,7 @@ const AuthenticatedApp = () => {
         <Route path="/household-chat/:propertyId" element={<HouseholdChat />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/lease-expiry" element={<LeaseExpiry />} />
+        <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/rent" element={<TenantRent />} />
         <Route path="/repairs" element={<TenantRepairs />} />
