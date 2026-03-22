@@ -231,14 +231,12 @@ export default function RoomDetail() {
               <div><Label>Rent Amount ($)</Label><Input type="number" value={tenantForm.rent_amount} onChange={e => setTenantForm({...tenantForm, rent_amount: e.target.value})} required /></div>
               <div>
                 <Label>Frequency</Label>
-                <Select value={tenantForm.rent_frequency} onValueChange={v => setTenantForm({...tenantForm, rent_frequency: v})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="fortnightly">Fortnightly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                  </SelectContent>
-                </Select>
+                <BottomSheet
+                  value={tenantForm.rent_frequency}
+                  onValueChange={v => setTenantForm({...tenantForm, rent_frequency: v})}
+                  options={[{ value: 'weekly', label: 'Weekly' }, { value: 'fortnightly', label: 'Fortnightly' }, { value: 'monthly', label: 'Monthly' }]}
+                  label="Select Frequency"
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
