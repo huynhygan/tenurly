@@ -89,7 +89,9 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <AuthenticatedApp />
+          <TabHistoryProvider>
+            <AuthenticatedApp />
+          </TabHistoryProvider>
         </Router>
         <Toaster />
         <SonnerToaster position="top-center" />
