@@ -23,16 +23,26 @@ export default function Documents() {
   const [form, setForm] = useState({ name: '', type: 'other', file_url: '' });
 
   const { data: docs = [] } = useQuery({
-    queryKey: ['documents', propertyId],
+    queryKey: qKey,
     queryFn: () => base44.entities.Document.filter({ property_id: propertyId }),
   });
+
+  const qKey = ['documents', propertyId];
 
   const createDoc = useMutation({
     mutationFn: (data) => base44.entities.Document.create({
       ...data, property_id: propertyId, uploaded_by: user?.id
     }),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: qKey });
+      const prev = queryClient.getQueryData(qKey);
+      const optimistic = { id: `tmp-${Date.now()}`, ...data, property_id: propertyId, created_date: new Date().toISOString() };
+      queryClient.setQueryData(qKey, old => [optimistic, ...(old || [])]);
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => queryClient.setQueryData(qKey, ctx.prev),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: qKey });
       setOpen(false);
       setForm({ name: '', type: 'other', file_url: '' });
     },
@@ -53,16 +63,18 @@ export default function Documents() {
                   <div><Label>Document Name</Label><Input value={form.name} onChange={e => setForm({...form, name: e.target.value})} required /></div>
                   <div>
                     <Label>Type</Label>
-                    <Select value={form.type} onValueChange={v => setForm({...form, type: v})}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="lease_agreement">Lease Agreement</SelectItem>
-                        <SelectItem value="bond_receipt">Bond Receipt</SelectItem>
-                        <SelectItem value="condition_report">Condition Report</SelectItem>
-                        <SelectItem value="notice">Notice</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <BottomSheet
+                      value={form.type}
+                      onValueChange={v => setForm({...form, type: v})}
+                      options={[
+                        { value: 'lease_agreement', label: 'Lease Agreement' },
+                        { value: 'bond_receipt', label: 'Bond Receipt' },
+                        { value: 'condition_report', label: 'Condition Report' },
+                        { value: 'notice', label: 'Notice' },
+                        { value: 'other', label: 'Other' },
+                      ]}
+                      label="Select Type"
+                    />
                   </div>
                   <FileUploader label="Choose file" onUpload={url => setForm({...form, file_url: url})} />
                   <Button type="submit" className="w-full" disabled={createDoc.isPending || !form.file_url}>Upload</Button>
