@@ -6,21 +6,21 @@ const landlordTabs = [
   { path: '/', label: 'Dashboard', icon: Home },
   { path: '/properties', label: 'Properties', icon: Building2 },
   { path: '/messages', label: 'Messages', icon: MessageCircle },
-  { path: '/notifications', label: 'Notifications', icon: Bell },
-  { path: '/settings', label: 'Settings', icon: User },
+  { path: '/notifications', label: 'Alerts', icon: Bell },
+  { path: '/settings', label: 'Profile', icon: User },
 ];
 
 const tenantTabs = [
   { path: '/', label: 'Home', icon: Home },
   { path: '/rent', label: 'Payments', icon: CreditCard },
   { path: '/messages', label: 'Messages', icon: MessageCircle },
-  { path: '/notifications', label: 'Notifications', icon: Bell },
+  { path: '/notifications', label: 'Alerts', icon: Bell },
   { path: '/settings', label: 'Profile', icon: User },
 ];
 
-export default function BottomNav({ role }) {
+export default function BottomNav({ mode }) {
   const location = useLocation();
-  const tabs = role === 'landlord' ? landlordTabs : tenantTabs;
+  const tabs = mode === 'landlord' ? landlordTabs : tenantTabs;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-border">
@@ -28,11 +28,7 @@ export default function BottomNav({ role }) {
         {tabs.map(({ path, icon: Icon, label }) => {
           const isActive = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
           return (
-            <Link
-              key={path}
-              to={path}
-              className="flex flex-col items-center gap-1 flex-1 py-2 group"
-            >
+            <Link key={path} to={path} className="flex flex-col items-center gap-1 flex-1 py-2 group">
               <div className={`p-1.5 rounded-xl transition-all duration-200 ${isActive ? 'bg-primary/10' : 'group-active:bg-muted'}`}>
                 <Icon
                   className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}

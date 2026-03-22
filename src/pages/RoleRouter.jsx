@@ -4,7 +4,7 @@ import LandlordDashboard from './LandlordDashboard';
 import TenantDashboard from './TenantDashboard';
 
 export default function RoleRouter() {
-  const { user } = useAuth();
-  if (user?.role === 'landlord') return <LandlordDashboard />;
+  const { currentMode } = useAuth();
+  if (currentMode === 'landlord') return <LandlordDashboard />;
   return <TenantDashboard />;
 }
