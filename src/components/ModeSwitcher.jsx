@@ -20,19 +20,19 @@ export default function ModeSwitcher() {
     setSwitching(true);
     await switchMode(mode);
     setSwitching(false);
-    navigate('/');  // RoleRouter at / handles redirecting to correct dashboard
+    navigate('/');
   };
 
   return (
-    <div className="sticky z-40 bg-background/95 backdrop-blur-md border-b border-border" style={{ top: 'env(safe-area-inset-top)' }}>
+    <div className="sticky z-40 bg-background/95 backdrop-blur-md border-b border-border/60" style={{ top: 'env(safe-area-inset-top)' }}>
       <div className="max-w-lg mx-auto px-4 py-2 flex justify-center">
-        <div className="flex items-center bg-muted rounded-xl p-1 gap-1">
+        <div className="flex items-center bg-muted/80 rounded-2xl p-1 gap-0.5">
           <button
             onClick={() => handleSwitch('landlord')}
             disabled={switching}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
               currentMode === 'landlord'
-                ? 'bg-white shadow-sm text-foreground'
+                ? 'bg-white shadow text-foreground'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -42,9 +42,9 @@ export default function ModeSwitcher() {
           <button
             onClick={() => handleSwitch('tenant')}
             disabled={switching}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
               currentMode === 'tenant'
-                ? 'bg-white shadow-sm text-foreground'
+                ? 'bg-white shadow text-foreground'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
