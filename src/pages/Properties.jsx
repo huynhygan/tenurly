@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label";
 import BottomSheet from '@/components/BottomSheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import EmptyState from '@/components/EmptyState';
+import PropertyEarningsChart from '@/components/PropertyEarningsChart';
+import PropertyPerformanceSheet from '@/components/PropertyPerformanceSheet';
+import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
 export default function Properties() {
   const { user } = useAuth();
