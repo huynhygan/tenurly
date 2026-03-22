@@ -4,12 +4,12 @@ import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Loader2, Home } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, Home, LogIn, UserPlus } from 'lucide-react';
 
 export default function AcceptInvite() {
-  const { user, addRole } = useAuth();
+  const { user, isLoadingAuth, addRole } = useAuth();
   const navigate = useNavigate();
-  const [status, setStatus] = useState('loading'); // loading | found | accepting | accepted | rejected | error
+  const [status, setStatus] = useState('loading'); // loading | auth_required | found | accepting | accepted | rejected | error
   const [invite, setInvite] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -17,9 +17,10 @@ export default function AcceptInvite() {
 
   useEffect(() => {
     if (!code) { setStatus('error'); setErrorMsg('No invite code found in URL.'); return; }
-    if (!user) return; // wait for auth
+    if (isLoadingAuth) return; // wait for auth to resolve
+    if (!user) { setStatus('auth_required'); return; } // not logged in
     loadInvite();
-  }, [code, user]);
+  }, [code, user, isLoadingAuth]);
 
   const loadInvite = async () => {
     setStatus('loading');
