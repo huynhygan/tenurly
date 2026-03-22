@@ -35,6 +35,14 @@ export default function Properties() {
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Property.create({ ...data, landlord_id: user?.id }),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['properties'] });
+      const prev = queryClient.getQueryData(['properties']);
+      const optimistic = { id: `tmp-${Date.now()}`, ...data, landlord_id: user?.id };
+      queryClient.setQueryData(['properties'], old => [...(old || []), optimistic]);
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => queryClient.setQueryData(['properties'], ctx.prev),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       setOpen(false);

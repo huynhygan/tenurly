@@ -22,12 +22,12 @@ export default function Documents() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'other', file_url: '' });
 
+  const qKey = ['documents', propertyId];
+
   const { data: docs = [] } = useQuery({
     queryKey: qKey,
     queryFn: () => base44.entities.Document.filter({ property_id: propertyId }),
   });
-
-  const qKey = ['documents', propertyId];
 
   const createDoc = useMutation({
     mutationFn: (data) => base44.entities.Document.create({
