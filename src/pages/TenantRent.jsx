@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -12,6 +11,7 @@ import StatusBadge from '@/components/StatusBadge';
 import FileUploader from '@/components/FileUploader';
 import { money, normalizeCharge, prettyDate } from '@/lib/propertyApp';
 import { format } from 'date-fns';
+import { CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
 
 export default function TenantRent() {
   const { user } = useAuth();
@@ -59,55 +59,82 @@ export default function TenantRent() {
     setPayOpen(true);
   };
 
-  const handleSubmitPayment = (e) => {
-    e.preventDefault();
-    markPaid.mutate({ id: selectedCharge.id, ...payForm });
+  const statusIcon = (status) => {
+    if (['paid', 'confirmed'].includes(status)) return <CheckCircle2 size={16} className="text-emerald-500" />;
+    if (status === 'overdue') return <AlertTriangle size={16} className="text-red-500" />;
+    return <Clock size={16} className="text-amber-500" />;
+  };
+
+  const statusBg = (status) => {
+    if (['paid', 'confirmed'].includes(status)) return 'bg-emerald-50';
+    if (status === 'overdue') return 'bg-red-50';
+    return 'bg-amber-50';
   };
 
   return (
-    <div>
-      <PageHeader title="Payments" subtitle="Mark rent as paid and track confirmation" back />
-      <div className="space-y-3 px-4 py-4">
+    <div className="pb-6">
+      <PageHeader title="Payments" subtitle="Track and submit your rent payments" back />
+
+      <div className="px-5 space-y-3">
+        {charges.length === 0 && (
+          <div className="bg-white rounded-3xl p-8 text-center text-sm text-muted-foreground border border-border/40 mt-2">
+            No rent records yet.
+          </div>
+        )}
+
         {charges.map((charge) => (
-          <Card key={charge.id} className="rounded-3xl p-4 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-semibold">{money(charge.amount)}</p>
-                <p className="text-sm text-muted-foreground">Due {prettyDate(charge.due_date)}</p>
-                {charge.payment_reference && <p className="mt-1 text-xs text-muted-foreground">Ref: {charge.payment_reference}</p>}
-                {charge.paid_date && <p className="mt-0.5 text-xs text-muted-foreground">Paid: {prettyDate(charge.paid_date)}</p>}
+          <div key={charge.id} className="bg-white rounded-3xl p-4 shadow-sm border border-border/40">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${statusBg(charge.status)}`}>
+                {statusIcon(charge.status)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-base">{money(charge.amount)}</p>
+                <p className="text-xs text-muted-foreground">Due {prettyDate(charge.due_date)}</p>
               </div>
               <StatusBadge status={charge.status} label={charge.status === 'confirmed' ? 'Settled' : undefined} />
             </div>
-            <div className="mt-4 flex gap-2">
-              {['upcoming', 'due', 'overdue'].includes(charge.status) && (
-                <Button className="flex-1" onClick={() => openPay(charge)}>I've paid</Button>
-              )}
-              {charge.receipt_url && (
-                <a href={charge.receipt_url} target="_blank" rel="noreferrer" className="flex-1">
-                  <Button variant="outline" className="w-full">View receipt</Button>
-                </a>
-              )}
-            </div>
-          </Card>
+
+            {(charge.payment_reference || charge.paid_date) && (
+              <div className="mt-3 pt-3 border-t border-border/40 space-y-0.5">
+                {charge.payment_reference && <p className="text-xs text-muted-foreground">Ref: {charge.payment_reference}</p>}
+                {charge.paid_date && <p className="text-xs text-muted-foreground">Paid: {prettyDate(charge.paid_date)}</p>}
+              </div>
+            )}
+
+            {(['upcoming', 'due', 'overdue'].includes(charge.status) || charge.receipt_url) && (
+              <div className="mt-3 flex gap-2">
+                {['upcoming', 'due', 'overdue'].includes(charge.status) && (
+                  <Button className="flex-1 rounded-2xl" onClick={() => openPay(charge)}>I've paid</Button>
+                )}
+                {charge.receipt_url && (
+                  <a href={charge.receipt_url} target="_blank" rel="noreferrer" className="flex-1">
+                    <Button variant="outline" className="w-full rounded-2xl">View receipt</Button>
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
         ))}
-        {charges.length === 0 && <Card className="rounded-3xl p-8 text-center text-sm text-muted-foreground shadow-sm">No rent records yet.</Card>}
       </div>
 
-      {/* Payment submission dialog */}
       <Dialog open={payOpen} onOpenChange={setPayOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-3xl">
           <DialogHeader><DialogTitle>Submit Payment</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmitPayment} className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Amount: <span className="font-semibold text-foreground">{money(selectedCharge?.amount)}</span> due {prettyDate(selectedCharge?.due_date)}
-            </p>
+          <form onSubmit={(e) => { e.preventDefault(); markPaid.mutate({ id: selectedCharge.id, ...payForm }); }} className="space-y-3">
+            <div className="bg-muted/50 rounded-2xl p-3 text-sm">
+              <span className="text-muted-foreground">Amount: </span>
+              <span className="font-bold">{money(selectedCharge?.amount)}</span>
+              <span className="text-muted-foreground"> due </span>
+              <span className="font-medium">{prettyDate(selectedCharge?.due_date)}</span>
+            </div>
             <div>
               <Label>Payment Reference (optional)</Label>
               <Input
                 value={payForm.payment_reference}
                 onChange={e => setPayForm({ ...payForm, payment_reference: e.target.value })}
                 placeholder="Bank reference or transaction ID"
+                className="mt-1"
               />
             </div>
             <FileUploader
@@ -115,7 +142,7 @@ export default function TenantRent() {
               accept="image/*,.pdf"
               onUpload={url => setPayForm({ ...payForm, receipt_url: url })}
             />
-            <Button type="submit" className="w-full" disabled={markPaid.isPending}>
+            <Button type="submit" className="w-full rounded-2xl" disabled={markPaid.isPending}>
               {markPaid.isPending ? 'Submitting...' : 'Confirm Payment'}
             </Button>
           </form>
