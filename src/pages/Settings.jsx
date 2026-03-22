@@ -35,7 +35,8 @@ export default function Settings() {
     setSwitching(true);
     await switchMode(mode);
     setSwitching(false);
-    toast.success(`Switched to ${mode === 'landlord' ? 'Landlord' : 'Tenant'} view`);
+    // Navigate to root — RoleRouter will redirect to correct dashboard based on new mode
+    window.location.href = '/';
   };
 
   const handleDeleteAccount = async () => {

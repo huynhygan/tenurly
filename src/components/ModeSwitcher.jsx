@@ -20,7 +20,7 @@ export default function ModeSwitcher() {
     setSwitching(true);
     await switchMode(mode);
     setSwitching(false);
-    navigate('/');
+    navigate('/');  // RoleRouter at / handles redirecting to correct dashboard
   };
 
   return (
