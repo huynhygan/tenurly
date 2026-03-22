@@ -9,8 +9,8 @@ export default function ModeSwitcher() {
   const [switching, setSwitching] = useState(false);
 
   const userRoles = user?.roles || [];
-  const hasLandlord = userRoles.includes('landlord') || user?.role === 'landlord';
-  const hasTenant = userRoles.includes('tenant') || user?.role !== 'landlord';
+  const hasLandlord = userRoles.includes('landlord');
+  const hasTenant = userRoles.includes('tenant');
   const canSwitch = hasLandlord && hasTenant;
 
   if (!canSwitch) return null;
