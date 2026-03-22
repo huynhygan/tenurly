@@ -167,6 +167,10 @@ export default function LandlordDashboard() {
         ))}
       </Section>
 
+      <Section title="Reports" action={<Link className="text-xs font-semibold text-primary" to="/reports">View all</Link>}>
+        <RowCard to="/reports" icon={BarChart2} title="Financial & Vacancy Reports" subtitle="Income, expenses, payment trends" />
+      </Section>
+
       <Section title="Messages" action={<Link className="text-xs font-semibold text-primary" to="/messages">Inbox</Link>}>
         {recentMessages.length === 0 ? <Card className="rounded-2xl p-4 text-sm text-muted-foreground">No recent conversations yet.</Card> : recentMessages.map((chat) => (
           <RowCard
