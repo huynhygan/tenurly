@@ -1,32 +1,51 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { UserPlus, DollarSign, CalendarDays, Mail, Trash2 } from 'lucide-react';
+import { UserPlus, DollarSign, FileText, Pencil, Trash2, AlertTriangle, Upload } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
+import FileUploader from '@/components/FileUploader';
+import { toast } from 'sonner';
+
+const BLANK_TENANT = {
+  tenant_name: '', tenant_email: '', rent_amount: '', rent_frequency: 'weekly',
+  rent_due_day: '1', bond_amount: '', lease_start: '', lease_end: ''
+};
 
 export default function RoomDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
   const [tenantOpen, setTenantOpen] = useState(false);
-  const [tenantForm, setTenantForm] = useState({
-    tenant_name: '', tenant_email: '', rent_amount: '', rent_frequency: 'weekly',
-    rent_due_day: '1', bond_amount: '', lease_start: '', lease_end: ''
-  });
+  const [tenantForm, setTenantForm] = useState(BLANK_TENANT);
+
+  const [editRoomOpen, setEditRoomOpen] = useState(false);
+  const [roomForm, setRoomForm] = useState({ name: '', description: '', status: 'vacant' });
+
+  const [deleteRoomOpen, setDeleteRoomOpen] = useState(false);
+  const [deleteTenantOpen, setDeleteTenantOpen] = useState(false);
+
+  const [leaseOpen, setLeaseOpen] = useState(false);
+  const [leaseUrl, setLeaseUrl] = useState('');
+  const [leaseName, setLeaseName] = useState('');
 
   const { data: room } = useQuery({
     queryKey: ['room', id],
     queryFn: async () => { const list = await base44.entities.Room.filter({ id }); return list[0]; },
+    onSuccess: (data) => {
+      if (data) setRoomForm({ name: data.name, description: data.description || '', status: data.status || 'vacant' });
+    }
   });
 
   const { data: tenancies = [] } = useQuery({
@@ -36,6 +55,7 @@ export default function RoomDetail() {
 
   const activeTenancy = tenancies.find(t => t.status === 'active');
 
+  // Create tenancy
   const createTenancy = useMutation({
     mutationFn: async (data) => {
       const tenancy = await base44.entities.Tenancy.create({
@@ -49,16 +69,11 @@ export default function RoomDetail() {
         status: 'active'
       });
       await base44.entities.Room.update(id, { status: 'occupied' });
-      // Create invite
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
       await base44.entities.Invite.create({
-        property_id: room.property_id,
-        room_id: id,
-        tenancy_id: tenancy.id,
-        landlord_id: user?.id,
-        tenant_email: data.tenant_email,
-        code,
-        status: 'pending'
+        property_id: room.property_id, room_id: id,
+        tenancy_id: tenancy.id, landlord_id: user?.id,
+        tenant_email: data.tenant_email, code, status: 'pending'
       });
       return tenancy;
     },
@@ -66,17 +81,94 @@ export default function RoomDetail() {
       queryClient.invalidateQueries({ queryKey: ['roomTenancies', id] });
       queryClient.invalidateQueries({ queryKey: ['room', id] });
       setTenantOpen(false);
+      setTenantForm(BLANK_TENANT);
+      toast.success('Tenant assigned & invite sent');
     },
   });
 
+  // Update room
+  const updateRoom = useMutation({
+    mutationFn: (data) => base44.entities.Room.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['room', id] });
+      setEditRoomOpen(false);
+      toast.success('Room updated');
+    },
+  });
+
+  // Delete room
+  const deleteRoom = useMutation({
+    mutationFn: async () => {
+      if (activeTenancy) await base44.entities.Tenancy.update(activeTenancy.id, { status: 'terminated' });
+      await base44.entities.Room.delete(id);
+    },
+    onSuccess: () => {
+      toast.success('Room deleted');
+      navigate(-1);
+    },
+  });
+
+  // Terminate tenancy
+  const terminateTenancy = useMutation({
+    mutationFn: async () => {
+      await base44.entities.Tenancy.update(activeTenancy.id, { status: 'terminated' });
+      await base44.entities.Room.update(id, { status: 'vacant' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['roomTenancies', id] });
+      queryClient.invalidateQueries({ queryKey: ['room', id] });
+      setDeleteTenantOpen(false);
+      toast.success('Tenancy terminated');
+    },
+  });
+
+  // Upload lease agreement
+  const uploadLease = useMutation({
+    mutationFn: () => base44.entities.Document.create({
+      property_id: room.property_id,
+      tenancy_id: activeTenancy?.id,
+      name: leaseName || 'Lease Agreement',
+      type: 'lease_agreement',
+      file_url: leaseUrl,
+      uploaded_by: user?.id,
+    }),
+    onSuccess: () => {
+      setLeaseOpen(false);
+      setLeaseUrl('');
+      setLeaseName('');
+      toast.success('Lease agreement uploaded');
+    },
+  });
+
+  const openEditRoom = () => {
+    if (room) setRoomForm({ name: room.name, description: room.description || '', status: room.status || 'vacant' });
+    setEditRoomOpen(true);
+  };
+
   return (
     <div>
-      <PageHeader title={room?.name || 'Room'} subtitle={`Status: ${room?.status || ''}`} back />
+      <PageHeader
+        title={room?.name || 'Room'}
+        subtitle={`Status: ${room?.status || ''}`}
+        back
+        action={
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" onClick={openEditRoom}><Pencil className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteRoomOpen(true)}><Trash2 className="w-4 h-4" /></Button>
+          </div>
+        }
+      />
+
       <div className="px-4 space-y-4 mt-2">
         {activeTenancy ? (
           <>
             <Card className="p-4 space-y-3">
-              <h3 className="text-sm font-semibold">Current Tenant</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Current Tenant</h3>
+                <Button variant="ghost" size="sm" className="text-destructive gap-1 h-7 px-2 text-xs" onClick={() => setDeleteTenantOpen(true)}>
+                  <Trash2 className="w-3 h-3" /> Remove
+                </Button>
+              </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Name</span><span className="font-medium">{activeTenancy.tenant_name}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span className="font-medium">{activeTenancy.tenant_email}</span></div>
@@ -86,12 +178,16 @@ export default function RoomDetail() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Status</span><StatusBadge status={activeTenancy.status} /></div>
               </div>
             </Card>
+
             <div className="grid grid-cols-2 gap-2">
               <Link to={`/properties/${room?.property_id}/rent-ledger`}>
                 <Button variant="outline" className="w-full gap-1"><DollarSign className="w-4 h-4" />Rent Ledger</Button>
               </Link>
-              <Link to={`/properties/${room?.property_id}/documents`}>
-                <Button variant="outline" className="w-full gap-1"><CalendarDays className="w-4 h-4" />Documents</Button>
+              <Button variant="outline" className="w-full gap-1" onClick={() => setLeaseOpen(true)}>
+                <Upload className="w-4 h-4" />Lease Agreement
+              </Button>
+              <Link to={`/properties/${room?.property_id}/documents`} className="col-span-2">
+                <Button variant="outline" className="w-full gap-1"><FileText className="w-4 h-4" />All Documents</Button>
               </Link>
             </div>
           </>
@@ -101,43 +197,9 @@ export default function RoomDetail() {
             title="No tenant assigned"
             description="Add a tenant to this room to start tracking rent"
             action={
-              <Dialog open={tenantOpen} onOpenChange={setTenantOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-1"><UserPlus className="w-4 h-4" />Assign Tenant</Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
-                  <DialogHeader><DialogTitle>Assign Tenant</DialogTitle></DialogHeader>
-                  <form onSubmit={(e) => { e.preventDefault(); createTenancy.mutate(tenantForm); }} className="space-y-3">
-                    <div><Label>Tenant Name</Label><Input value={tenantForm.tenant_name} onChange={e => setTenantForm({...tenantForm, tenant_name: e.target.value})} required /></div>
-                    <div><Label>Tenant Email</Label><Input type="email" value={tenantForm.tenant_email} onChange={e => setTenantForm({...tenantForm, tenant_email: e.target.value})} required /></div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div><Label>Rent Amount ($)</Label><Input type="number" value={tenantForm.rent_amount} onChange={e => setTenantForm({...tenantForm, rent_amount: e.target.value})} required /></div>
-                      <div>
-                        <Label>Frequency</Label>
-                        <Select value={tenantForm.rent_frequency} onValueChange={v => setTenantForm({...tenantForm, rent_frequency: v})}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="weekly">Weekly</SelectItem>
-                            <SelectItem value="fortnightly">Fortnightly</SelectItem>
-                            <SelectItem value="monthly">Monthly</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div><Label>Due Day</Label><Input type="number" min="1" max="31" value={tenantForm.rent_due_day} onChange={e => setTenantForm({...tenantForm, rent_due_day: e.target.value})} /></div>
-                      <div><Label>Bond ($)</Label><Input type="number" value={tenantForm.bond_amount} onChange={e => setTenantForm({...tenantForm, bond_amount: e.target.value})} /></div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div><Label>Lease Start</Label><Input type="date" value={tenantForm.lease_start} onChange={e => setTenantForm({...tenantForm, lease_start: e.target.value})} /></div>
-                      <div><Label>Lease End</Label><Input type="date" value={tenantForm.lease_end} onChange={e => setTenantForm({...tenantForm, lease_end: e.target.value})} /></div>
-                    </div>
-                    <Button type="submit" className="w-full" disabled={createTenancy.isPending}>
-                      {createTenancy.isPending ? 'Creating...' : 'Assign Tenant & Send Invite'}
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
+              <Button className="gap-1" onClick={() => setTenantOpen(true)}>
+                <UserPlus className="w-4 h-4" />Assign Tenant
+              </Button>
             }
           />
         )}
@@ -157,6 +219,116 @@ export default function RoomDetail() {
           </div>
         )}
       </div>
+
+      {/* Assign Tenant Dialog */}
+      <Dialog open={tenantOpen} onOpenChange={setTenantOpen}>
+        <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Assign Tenant</DialogTitle></DialogHeader>
+          <form onSubmit={(e) => { e.preventDefault(); createTenancy.mutate(tenantForm); }} className="space-y-3">
+            <div><Label>Tenant Name</Label><Input value={tenantForm.tenant_name} onChange={e => setTenantForm({...tenantForm, tenant_name: e.target.value})} required /></div>
+            <div><Label>Tenant Email</Label><Input type="email" value={tenantForm.tenant_email} onChange={e => setTenantForm({...tenantForm, tenant_email: e.target.value})} required /></div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Rent Amount ($)</Label><Input type="number" value={tenantForm.rent_amount} onChange={e => setTenantForm({...tenantForm, rent_amount: e.target.value})} required /></div>
+              <div>
+                <Label>Frequency</Label>
+                <Select value={tenantForm.rent_frequency} onValueChange={v => setTenantForm({...tenantForm, rent_frequency: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="fortnightly">Fortnightly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Due Day</Label><Input type="number" min="1" max="31" value={tenantForm.rent_due_day} onChange={e => setTenantForm({...tenantForm, rent_due_day: e.target.value})} /></div>
+              <div><Label>Bond ($)</Label><Input type="number" value={tenantForm.bond_amount} onChange={e => setTenantForm({...tenantForm, bond_amount: e.target.value})} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Lease Start</Label><Input type="date" value={tenantForm.lease_start} onChange={e => setTenantForm({...tenantForm, lease_start: e.target.value})} /></div>
+              <div><Label>Lease End</Label><Input type="date" value={tenantForm.lease_end} onChange={e => setTenantForm({...tenantForm, lease_end: e.target.value})} /></div>
+            </div>
+            <Button type="submit" className="w-full" disabled={createTenancy.isPending}>
+              {createTenancy.isPending ? 'Creating...' : 'Assign Tenant & Send Invite'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Room Dialog */}
+      <Dialog open={editRoomOpen} onOpenChange={setEditRoomOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Edit Room</DialogTitle></DialogHeader>
+          <form onSubmit={(e) => { e.preventDefault(); updateRoom.mutate(roomForm); }} className="space-y-3">
+            <div><Label>Room Name</Label><Input value={roomForm.name} onChange={e => setRoomForm({...roomForm, name: e.target.value})} required /></div>
+            <div><Label>Description</Label><Input value={roomForm.description} onChange={e => setRoomForm({...roomForm, description: e.target.value})} placeholder="Optional description" /></div>
+            <div>
+              <Label>Status</Label>
+              <Select value={roomForm.status} onValueChange={v => setRoomForm({...roomForm, status: v})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vacant">Vacant</SelectItem>
+                  <SelectItem value="occupied">Occupied</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" className="w-full" disabled={updateRoom.isPending}>
+              {updateRoom.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Lease Agreement Dialog */}
+      <Dialog open={leaseOpen} onOpenChange={setLeaseOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Upload Lease Agreement</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Document Name</Label>
+              <Input value={leaseName} onChange={e => setLeaseName(e.target.value)} placeholder="Lease Agreement" />
+            </div>
+            <FileUploader label="Choose lease file (PDF)" onUpload={url => setLeaseUrl(url)} />
+            <Button
+              className="w-full"
+              disabled={!leaseUrl || uploadLease.isPending}
+              onClick={() => uploadLease.mutate()}
+            >
+              {uploadLease.isPending ? 'Uploading...' : 'Upload Lease Agreement'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Terminate Tenant Confirm */}
+      <Dialog open={deleteTenantOpen} onOpenChange={setDeleteTenantOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="w-5 h-5" />Remove Tenant</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">This will terminate <span className="font-semibold text-foreground">{activeTenancy?.tenant_name}</span>'s tenancy and mark the room as vacant. This cannot be undone.</p>
+          <div className="flex gap-2 mt-2">
+            <Button variant="outline" className="flex-1" onClick={() => setDeleteTenantOpen(false)}>Cancel</Button>
+            <Button variant="destructive" className="flex-1" disabled={terminateTenancy.isPending} onClick={() => terminateTenancy.mutate()}>
+              {terminateTenancy.isPending ? 'Removing...' : 'Remove Tenant'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Room Confirm */}
+      <Dialog open={deleteRoomOpen} onOpenChange={setDeleteRoomOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="w-5 h-5" />Delete Room</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">This will permanently delete <span className="font-semibold text-foreground">{room?.name}</span> and terminate any active tenancy. This cannot be undone.</p>
+          <div className="flex gap-2 mt-2">
+            <Button variant="outline" className="flex-1" onClick={() => setDeleteRoomOpen(false)}>Cancel</Button>
+            <Button variant="destructive" className="flex-1" disabled={deleteRoom.isPending} onClick={() => deleteRoom.mutate()}>
+              {deleteRoom.isPending ? 'Deleting...' : 'Delete Room'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
