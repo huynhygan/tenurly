@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
@@ -9,36 +9,52 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import FileUploader from '@/components/FileUploader';
+import BottomSheet from '@/components/BottomSheet';
+import usePullToRefresh from '@/hooks/usePullToRefresh';
 
 const CATEGORIES = ['repairs', 'insurance', 'rates', 'utilities', 'management', 'cleaning', 'garden', 'other'];
+const CATEGORY_OPTIONS = CATEGORIES.map(c => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }));
+const BLANK = { category: 'other', amount: '', date: '', description: '', receipt_url: '' };
 
 export default function Expenses() {
   const { propertyId } = useParams();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ category: 'other', amount: '', date: '', description: '', receipt_url: '' });
+  const [form, setForm] = useState(BLANK);
 
-  const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses', propertyId],
+  const qKey = ['expenses', propertyId];
+
+  const { data: expenses = [], refetch } = useQuery({
+    queryKey: qKey,
     queryFn: () => propertyId
       ? base44.entities.Expense.filter({ property_id: propertyId })
       : base44.entities.Expense.filter({ landlord_id: user?.id }),
   });
 
+  const onRefresh = useCallback(() => refetch(), [refetch]);
+  const { containerRef, isRefreshing } = usePullToRefresh(onRefresh);
+
   const createExpense = useMutation({
     mutationFn: (data) => base44.entities.Expense.create({
       ...data, amount: parseFloat(data.amount), property_id: propertyId, landlord_id: user?.id
     }),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: qKey });
+      const prev = queryClient.getQueryData(qKey);
+      const optimistic = { id: `tmp-${Date.now()}`, ...data, amount: parseFloat(data.amount), property_id: propertyId };
+      queryClient.setQueryData(qKey, old => [optimistic, ...(old || [])]);
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => queryClient.setQueryData(qKey, ctx.prev),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: qKey });
       setOpen(false);
-      setForm({ category: 'other', amount: '', date: '', description: '', receipt_url: '' });
+      setForm(BLANK);
     },
   });
 
@@ -59,12 +75,12 @@ export default function Expenses() {
               <form onSubmit={(e) => { e.preventDefault(); createExpense.mutate(form); }} className="space-y-3">
                 <div>
                   <Label>Category</Label>
-                  <Select value={form.category} onValueChange={v => setForm({...form, category: v})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map(c => <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <BottomSheet
+                    value={form.category}
+                    onValueChange={v => setForm({...form, category: v})}
+                    options={CATEGORY_OPTIONS}
+                    label="Select Category"
+                  />
                 </div>
                 <div><Label>Amount ($)</Label><Input type="number" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} required /></div>
                 <div><Label>Date</Label><Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required /></div>
@@ -76,7 +92,8 @@ export default function Expenses() {
           </Dialog>
         }
       />
-      <div className="px-4 space-y-3 mt-2">
+      {isRefreshing && <div className="text-center text-xs text-muted-foreground py-1">Refreshing…</div>}
+      <div ref={containerRef} className="px-4 space-y-3 mt-2">
         {sorted.length === 0 && <EmptyState icon={Receipt} title="No expenses" description="Log property expenses here" />}
         {sorted.map(e => (
           <Card key={e.id} className="p-4">
