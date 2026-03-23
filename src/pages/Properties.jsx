@@ -224,6 +224,14 @@ export default function Properties() {
           );
         })}
       </div>
+
+      {performanceProperty && (
+        <PropertyPerformanceSheet
+          property={performanceProperty}
+          charges={getPropertyCharges(performanceProperty.id)}
+          onClose={() => setPerformanceProperty(null)}
+        />
+      )}
     </div>
   );
 }
