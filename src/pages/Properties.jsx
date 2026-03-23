@@ -36,6 +36,22 @@ export default function Properties() {
     queryFn: () => base44.entities.Tenancy.filter({ landlord_id: user?.id, status: 'active' }),
   });
 
+  const { data: allCharges = [] } = useQuery({
+    queryKey: ['all-charges', user?.id],
+    queryFn: () => base44.entities.RentCharge.filter({ landlord_id: user?.id }),
+    enabled: !!user?.id,
+  });
+
+  const getPropertyCharges = (propertyId) => allCharges.filter(c => c.property_id === propertyId);
+
+  const getThisMonthEarnings = (propertyId) => {
+    const now = new Date();
+    return allCharges
+      .filter(c => c.property_id === propertyId && ['paid', 'confirmed'].includes(c.status) && c.due_date)
+      .filter(c => isWithinInterval(new Date(c.due_date), { start: startOfMonth(now), end: endOfMonth(now) }))
+      .reduce((sum, c) => sum + (c.amount || 0), 0);
+  };
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Property.create({ ...data, landlord_id: user?.id }),
     onMutate: async (data) => {
