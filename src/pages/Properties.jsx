@@ -213,6 +213,12 @@ export default function Properties() {
                     <p className="text-[10px] text-muted-foreground mt-1">{pct}% occupancy · {typeLabel(p.type)}</p>
                   </div>
                 )}
+
+                <PropertyEarningsChart
+                  charges={getPropertyCharges(p.id)}
+                  currentMonthTotal={getThisMonthEarnings(p.id)}
+                  onClick={() => setPerformanceProperty(p)}
+                />
               </div>
             </Link>
           );
