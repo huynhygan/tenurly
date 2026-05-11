@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, BedDouble, CreditCard, Wrench, MoreHorizontal, MessageCircle, User } from 'lucide-react';
+import { Home, BedDouble, CreditCard, Wrench, MoreHorizontal, MessageCircle, User, FileText } from 'lucide-react';
 import { useTabHistory } from '@/lib/TabHistoryContext';
 
 const landlordTabs = [
@@ -12,11 +12,11 @@ const landlordTabs = [
 ];
 
 const tenantTabs = [
-  { root: '/',          label: 'Home',    icon: Home },
-  { root: '/rent',      label: 'Rent',    icon: CreditCard },
-  { root: '/messages',  label: 'Messages',icon: MessageCircle },
-  { root: '/repairs',   label: 'Repairs', icon: Wrench },
-  { root: '/settings',  label: 'More',    icon: MoreHorizontal },
+  { root: '/',           label: 'Home',    icon: Home },
+  { root: '/rent',       label: 'Rent',    icon: CreditCard },
+  { root: '/repairs',    label: 'Repairs', icon: Wrench },
+  { root: '/documents',  label: 'Docs',    icon: FileText },
+  { root: '/messages',   label: 'Chat',    icon: MessageCircle },
 ];
 
 export default function BottomNav({ mode }) {

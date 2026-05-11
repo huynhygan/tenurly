@@ -1,27 +1,33 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, CalendarClock, Wrench, ChevronRight } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 import { money, prettyDate } from '@/lib/propertyApp';
-import StatusBadge from '@/components/StatusBadge';
 
-function buildFeedItems(charges, maintenance, tenancies) {
+function dot(color) {
+  const map = { red: 'bg-red-500', amber: 'bg-amber-400', orange: 'bg-orange-400', green: 'bg-emerald-500', gray: 'bg-gray-300' };
+  return <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${map[color] || map.gray}`} />;
+}
+
+function buildItems(charges, maintenance, tenancies) {
   const today = new Date();
   const items = [];
 
-  // Overdue rent
+  // Overdue rent per tenancy
   charges.forEach(c => {
     if (c.status !== 'overdue') return;
-    const daysOverdue = c.due_date ? differenceInDays(today, parseISO(c.due_date)) : 0;
+    const tenancy = tenancies.find(t => t.id === c.tenancy_id);
+    const name = tenancy?.tenant_name || 'Tenant';
+    const daysAgo = c.due_date ? differenceInDays(today, parseISO(c.due_date)) : 0;
+    const lastPaid = charges
+      .filter(x => (x.status === 'paid' || x.status === 'confirmed') && x.tenancy_id === c.tenancy_id)
+      .sort((a, b) => new Date(b.due_date) - new Date(a.due_date))[0];
     items.push({
       id: `rent-${c.id}`,
       urgency: 0,
-      icon: AlertTriangle,
-      iconBg: 'bg-red-50',
-      iconColor: 'text-red-500',
-      title: `Overdue rent — ${money(c.amount)}`,
-      subtitle: `${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} overdue · Due ${prettyDate(c.due_date)}`,
-      badge: <StatusBadge status="overdue" />,
+      dot: 'red',
+      title: `${name} — ${daysAgo} days overdue`,
+      badge: daysAgo > 0 ? { label: `${daysAgo} days overdue`, color: 'text-red-600 bg-red-50' } : null,
+      subtitle: `${money(c.amount)} outstanding${lastPaid ? ` · Last paid ${prettyDate(lastPaid.due_date)}` : ''}`,
       to: c.property_id ? `/properties/${c.property_id}` : '/properties',
     });
   });
@@ -34,67 +40,82 @@ function buildFeedItems(charges, maintenance, tenancies) {
     items.push({
       id: `lease-${t.id}`,
       urgency: 1,
-      icon: CalendarClock,
-      iconBg: 'bg-violet-50',
-      iconColor: 'text-violet-500',
-      title: `${t.tenant_name || 'Tenant'} vacating soon`,
-      subtitle: `Agreement ends ${prettyDate(t.lease_end)} · ${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`,
-      badge: <StatusBadge status={daysLeft <= 3 ? 'overdue' : 'due'} label={`${daysLeft}d`} />,
+      dot: 'amber',
+      title: `${t.tenant_name || 'Tenant'} vacating`,
+      badge: null,
+      subtitle: `Notice given · Leaves ${prettyDate(t.lease_end)} · ${daysLeft} days`,
       to: t.room_id ? `/rooms/${t.room_id}` : `/properties/${t.property_id}`,
     });
   });
 
-  // Open maintenance
+  // Open/urgent maintenance
   maintenance.forEach(m => {
-    if (m.status !== 'open') return;
+    if (m.status === 'completed' || m.status === 'cancelled') return;
+    const isUrgent = m.priority === 'urgent' || m.priority === 'high';
     items.push({
       id: `maint-${m.id}`,
-      urgency: 2,
-      icon: Wrench,
-      iconBg: 'bg-orange-50',
-      iconColor: 'text-orange-500',
-      title: m.title,
-      subtitle: `Reported ${prettyDate(m.submitted_at || m.created_date)} · ${m.priority || 'medium'} priority`,
-      badge: <StatusBadge status="open" />,
+      urgency: isUrgent ? 1 : 2,
+      dot: isUrgent ? 'orange' : 'gray',
+      title: `${m.title}${isUrgent ? ' — urgent repair' : ''}`,
+      badge: null,
+      subtitle: `Lodged by ${m.tenant_id ? 'tenant' : 'owner'} · ${prettyDate(m.submitted_at || m.created_date)}`,
       to: `/maintenance/${m.id}`,
     });
   });
+
+  // Recent confirmed payments (green dot)
+  charges
+    .filter(c => c.status === 'confirmed' || c.status === 'paid')
+    .sort((a, b) => new Date(b.paid_date || b.due_date) - new Date(a.paid_date || a.due_date))
+    .slice(0, 1)
+    .forEach(c => {
+      const tenancy = tenancies.find(t => t.id === c.tenancy_id);
+      const name = tenancy?.tenant_name || 'Tenant';
+      items.push({
+        id: `paid-${c.id}`,
+        urgency: 3,
+        dot: 'green',
+        title: `${name} paid`,
+        badge: null,
+        subtitle: `${money(c.amount)} received · Weekly rent · ${prettyDate(c.paid_date || c.due_date) === prettyDate(new Date().toISOString().slice(0,10)) ? 'Today' : prettyDate(c.paid_date || c.due_date)}`,
+        to: c.property_id ? `/properties/${c.property_id}` : '/properties',
+      });
+    });
 
   return items.sort((a, b) => a.urgency - b.urgency);
 }
 
 export default function NeedsAttentionFeed({ charges = [], maintenance = [], tenancies = [] }) {
-  const items = buildFeedItems(charges, maintenance, tenancies);
+  const items = buildItems(charges, maintenance, tenancies);
 
   if (items.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-4 text-sm text-muted-foreground border border-border/40 text-center">
-        ✅ Everything looks good — no urgent actions
+      <div className="bg-white rounded-2xl border border-border/40 px-4 py-5 text-sm text-muted-foreground text-center">
+        ✅ Nothing needs attention right now
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
-      {items.map(item => {
-        const Icon = item.icon;
-        const content = (
-          <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-border/40 flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${item.iconBg}`}>
-              <Icon className={`w-[18px] h-[18px] ${item.iconColor}`} strokeWidth={2} />
-            </div>
+    <div className="bg-white rounded-2xl border border-border/40 divide-y divide-border/30 overflow-hidden">
+      {items.map(item => (
+        <Link key={item.id} to={item.to}>
+          <div className="flex items-center gap-3 px-4 py-3.5 active:bg-muted/40">
+            {dot(item.dot)}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">{item.title}</p>
-              <p className="text-xs text-muted-foreground truncate">{item.subtitle}</p>
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
-              {item.badge}
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-0.5" />
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-medium text-foreground">{item.title}</p>
+                {item.badge && (
+                  <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${item.badge.color}`}>
+                    {item.badge.label}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">{item.subtitle}</p>
             </div>
           </div>
-        );
-        return <Link key={item.id} to={item.to}>{content}</Link>;
-      })}
+        </Link>
+      ))}
     </div>
   );
 }
