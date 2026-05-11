@@ -109,6 +109,10 @@ export default function LandlordDashboard() {
     .sort((a, b) => (a.lease.days ?? 999) - (b.lease.days ?? 999))
     .slice(0, 3);
   const openRepairs = maintenance.filter(m => isOpenMaintenance(m.status)).slice(0, 3);
+  const inProgressRepairs = maintenance.filter(m => m.status === 'in_progress');
+  const mostRecentIssue = [...maintenance]
+    .filter(m => m.status !== 'completed' && m.status !== 'cancelled')
+    .sort((a, b) => new Date(b.submitted_at || b.created_date || 0) - new Date(a.submitted_at || a.created_date || 0))[0] || null;
   const recentChats = chats.slice(0, 3);
   const firstName = user?.full_name?.split(' ')[0] || 'there';
 
@@ -180,6 +184,38 @@ export default function LandlordDashboard() {
               />
             </div>
           ))}
+        </section>
+
+        {/* Maintenance summary card */}
+        <section>
+          <SectionHeader title="Maintenance" linkTo="/maintenance" linkLabel="Manage" />
+          <div className="bg-white rounded-3xl border border-border/40 shadow-sm overflow-hidden">
+            <div className="flex items-stretch">
+              {/* In-progress count */}
+              <div className="flex-1 flex flex-col items-center justify-center py-5 border-r border-border/40">
+                <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center mb-2">
+                  <Wrench className="w-5 h-5 text-orange-500" />
+                </div>
+                <p className="text-3xl font-extrabold text-orange-600">{inProgressRepairs.length}</p>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">In Progress</p>
+              </div>
+              {/* Most recent issue */}
+              <div className="flex-[2] flex flex-col justify-center px-4 py-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Latest Issue</p>
+                {mostRecentIssue ? (
+                  <>
+                    <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">{mostRecentIssue.title}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{prettyDate(mostRecentIssue.submitted_at)}</p>
+                    <div className="mt-2">
+                      <StatusBadge status={mostRecentIssue.status} />
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No open issues 🎉</p>
+                )}
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Open repairs */}
