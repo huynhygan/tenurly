@@ -1,7 +1,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, CalendarClock, CheckCircle2, DollarSign, MessageCircle, TrendingUp, TrendingDown, Wrench, BarChart2, ChevronRight } from 'lucide-react';
+import { AlertTriangle, Calendar, CalendarClock, CheckCircle2, DollarSign, MessageCircle, TrendingUp, TrendingDown, Wrench, BarChart2, ChevronRight } from 'lucide-react';
+import DashboardCalendar from '@/components/DashboardCalendar';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
@@ -238,6 +239,16 @@ export default function LandlordDashboard() {
               />
             </div>
           ))}
+        </section>
+
+        {/* Calendar */}
+        <section>
+          <SectionHeader title="Calendar" linkTo="/lease-expiry" linkLabel="Leases" />
+          <DashboardCalendar
+            charges={charges.filter(c => ['upcoming', 'due', 'overdue'].includes(c.status))}
+            tenancies={tenancies.filter(t => t.status === 'active')}
+            maintenance={maintenance.filter(m => m.status === 'scheduled')}
+          />
         </section>
 
         {/* Reports shortcut */}
