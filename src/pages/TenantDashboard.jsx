@@ -46,12 +46,19 @@ export default function TenantDashboard() {
   const charges = chargesRaw.map(normalizeCharge);
   const repairs = repairsRaw.map(normalizeMaintenance);
 
+  const today = new Date();
   const nextDue = charges
     .filter(c => ['upcoming', 'due', 'pending', 'overdue'].includes(c.status))
     .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))[0];
+  const overdueCharges = charges.filter(c => c.status === 'overdue');
+  const totalOverdue = overdueCharges.reduce((sum, c) => sum + (c.amount || 0), 0);
+  const daysOverdue = nextDue?.status === 'overdue' && nextDue.due_date
+    ? Math.max(0, Math.floor((today - new Date(nextDue.due_date)) / 86400000))
+    : 0;
+  const isCurrent = overdueCharges.length === 0;
   const lease = leaseSummary(tenancy?.lease_end);
   const openRepairs = repairs.filter(r => !['completed', 'cancelled'].includes(r.status)).length;
-  const recentCharges = charges.slice(0, 3);
+  const recentCharges = charges.sort((a,b) => new Date(b.due_date) - new Date(a.due_date)).slice(0, 5);
 
   const firstName = user?.full_name?.split(' ')[0] || 'there';
 
@@ -66,32 +73,54 @@ export default function TenantDashboard() {
         </p>
       </div>
 
-      {/* Next rent card */}
+      {/* Prominent rent status card */}
       <div className="px-5 mb-5">
         <div className={`rounded-3xl p-5 shadow-lg text-white ${
-          nextDue?.status === 'overdue'
+          !isCurrent
             ? 'bg-gradient-to-br from-red-500 to-red-400'
             : nextDue?.status === 'paid'
             ? 'bg-gradient-to-br from-emerald-500 to-emerald-400'
-            : 'bg-gradient-to-br from-primary to-orange-400'
+            : 'bg-gradient-to-br from-emerald-500 to-emerald-400'
         }`}>
-          <p className="text-xs font-semibold opacity-80 uppercase tracking-wider">
-            {nextDue?.status === 'overdue' ? '⚠️ Overdue rent' : nextDue?.status === 'paid' ? '✅ Payment submitted' : 'Next rent due'}
-          </p>
-          <p className="text-4xl font-extrabold mt-1">{nextDue ? money(nextDue.amount) : '—'}</p>
-          <div className="flex items-center justify-between mt-4">
-            <div>
-              <p className="text-xs opacity-70">Due date</p>
-              <p className="font-bold">{prettyDate(nextDue?.due_date, 'Not scheduled')}</p>
-            </div>
-            {nextDue && (
-              <Link to="/rent">
-                <div className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-2xl text-sm font-bold transition-colors">
-                  {['upcoming', 'due', 'overdue'].includes(nextDue?.status) ? "I've paid →" : 'View'}
-                </div>
-              </Link>
-            )}
+          <div className="flex items-center gap-2 mb-1">
+            <div className={`w-2.5 h-2.5 rounded-full ${isCurrent ? 'bg-white' : 'bg-red-200'} animate-pulse`} />
+            <p className="text-xs font-bold uppercase tracking-wider opacity-90">
+              {!isCurrent ? 'Rent overdue' : 'Rent current'}
+            </p>
           </div>
+          <p className="text-4xl font-extrabold mt-1">
+            {!isCurrent ? money(totalOverdue) : (nextDue ? money(nextDue.amount) : '—')}
+          </p>
+          {!isCurrent ? (
+            <div className="flex items-center justify-between mt-4">
+              <div>
+                <p className="text-xs opacity-70">Days overdue</p>
+                <p className="font-bold text-lg">{daysOverdue} day{daysOverdue !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="w-px bg-white/20 self-stretch" />
+              <div>
+                <p className="text-xs opacity-70">Outstanding</p>
+                <p className="font-bold text-lg">{money(totalOverdue)}</p>
+              </div>
+              <Link to="/rent">
+                <div className="bg-white/25 px-4 py-2 rounded-2xl text-sm font-bold">Pay now →</div>
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between mt-4">
+              <div>
+                <p className="text-xs opacity-70">Next due</p>
+                <p className="font-bold">{prettyDate(nextDue?.due_date, 'Not scheduled')}</p>
+              </div>
+              {nextDue && (
+                <Link to="/rent">
+                  <div className="bg-white/20 px-4 py-2 rounded-2xl text-sm font-bold">
+                    {['upcoming', 'due'].includes(nextDue?.status) ? "I've paid →" : 'View'}
+                  </div>
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

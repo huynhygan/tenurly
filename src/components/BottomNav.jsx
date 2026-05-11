@@ -1,22 +1,22 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Building2, MessageCircle, Wrench, User, CreditCard } from 'lucide-react';
+import { Home, BedDouble, CreditCard, Wrench, MoreHorizontal, MessageCircle, User } from 'lucide-react';
 import { useTabHistory } from '@/lib/TabHistoryContext';
 
 const landlordTabs = [
-  { root: '/',             label: 'Home',       icon: Home },
-  { root: '/properties',  label: 'Properties', icon: Building2 },
-  { root: '/messages',    label: 'Messages',   icon: MessageCircle },
-  { root: '/maintenance', label: 'Tasks',      icon: Wrench },
-  { root: '/settings',    label: 'Profile',    icon: User },
+  { root: '/',             label: 'Home',    icon: Home },
+  { root: '/properties',  label: 'Houses',  icon: BedDouble },
+  { root: '/messages',    label: 'Messages',icon: MessageCircle },
+  { root: '/maintenance', label: 'Repairs', icon: Wrench },
+  { root: '/settings',    label: 'More',    icon: MoreHorizontal },
 ];
 
 const tenantTabs = [
-  { root: '/',          label: 'Home',     icon: Home },
-  { root: '/rent',      label: 'Payments', icon: CreditCard },
-  { root: '/messages',  label: 'Messages', icon: MessageCircle },
-  { root: '/repairs',   label: 'Tasks',    icon: Wrench },
-  { root: '/settings',  label: 'Profile',  icon: User },
+  { root: '/',          label: 'Home',    icon: Home },
+  { root: '/rent',      label: 'Rent',    icon: CreditCard },
+  { root: '/messages',  label: 'Messages',icon: MessageCircle },
+  { root: '/repairs',   label: 'Repairs', icon: Wrench },
+  { root: '/settings',  label: 'More',    icon: MoreHorizontal },
 ];
 
 export default function BottomNav({ mode }) {

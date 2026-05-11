@@ -91,17 +91,22 @@ export default function RentLedger() {
 
   const filtered = filter === 'all' ? charges : charges.filter(c => c.status === filter);
   const sorted = [...filtered].sort((a, b) => new Date(b.due_date) - new Date(a.due_date));
+  const today = new Date();
+  const weeksOverdue = (charge) => {
+    if (charge.status !== 'overdue' || !charge.due_date) return null;
+    return Math.floor((today - new Date(charge.due_date)) / (7 * 86400000));
+  };
 
   return (
     <div>
       <PageHeader
-        title="Rent Ledger"
+        title="Rent Ledger — Weekly"
         back
         action={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button size="sm" className="gap-1"><Plus className="w-4 h-4" />Add</Button></DialogTrigger>
             <DialogContent className="max-w-sm">
-              <DialogHeader><DialogTitle>New Rent Charge</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>New Weekly Rent Charge</DialogTitle></DialogHeader>
               <form onSubmit={(e) => { e.preventDefault(); createCharge.mutate(form); }} className="space-y-3">
                 <div>
                   <Label>Tenant</Label>
@@ -144,6 +149,9 @@ export default function RentLedger() {
                   <p className="font-medium text-sm">{tenancy?.tenant_name || tenancy?.tenant_email || 'Tenant'}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">Due: {c.due_date}</p>
                   {c.notes && <p className="text-xs text-muted-foreground mt-0.5">{c.notes}</p>}
+                  {weeksOverdue(c) !== null && weeksOverdue(c) > 0 && (
+                    <p className="text-xs font-semibold text-red-500 mt-0.5">{weeksOverdue(c)} week{weeksOverdue(c) !== 1 ? 's' : ''} overdue</p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="font-bold">${c.amount}</p>

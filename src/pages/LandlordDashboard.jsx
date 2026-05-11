@@ -1,12 +1,14 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Calendar, CalendarClock, CheckCircle2, DollarSign, MessageCircle, TrendingUp, TrendingDown, Wrench, BarChart2, ChevronRight } from 'lucide-react';
-import DashboardCalendar from '@/components/DashboardCalendar';
+import { AlertTriangle, CalendarClock, CheckCircle2, DollarSign, MessageCircle, TrendingUp, TrendingDown, Wrench, BarChart2, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
 import { isOpenMaintenance, leaseSummary, money, normalizeCharge, normalizeExpense, normalizeMaintenance, normalizeTenancy, normalizeChat, prettyDate } from '@/lib/propertyApp';
+import NeedsAttentionFeed from '@/components/NeedsAttentionFeed';
+import QuickActions from '@/components/QuickActions';
+import DashboardCalendar from '@/components/DashboardCalendar';
 
 function MetricCard({ icon: Icon, label, value, tone = 'slate' }) {
   const tones = {
@@ -102,17 +104,11 @@ export default function LandlordDashboard() {
   const expensesTotal = expenses.reduce((sum, e) => sum + e.amount, 0);
   const net = collected - expensesTotal;
 
-  const actionCharges = charges.filter(c => c.status === 'paid' || c.status === 'overdue').slice(0, 4);
-  const expiring = tenancies
-    .map(t => ({ ...t, lease: leaseSummary(t.lease_end) }))
-    .filter(t => t.lease.days !== null && t.lease.days <= 60)
-    .sort((a, b) => (a.lease.days ?? 999) - (b.lease.days ?? 999))
-    .slice(0, 3);
-  const openRepairs = maintenance.filter(m => isOpenMaintenance(m.status)).slice(0, 3);
   const inProgressRepairs = maintenance.filter(m => m.status === 'in_progress');
   const mostRecentIssue = [...maintenance]
     .filter(m => m.status !== 'completed' && m.status !== 'cancelled')
     .sort((a, b) => new Date(b.submitted_at || b.created_date || 0) - new Date(a.submitted_at || a.created_date || 0))[0] || null;
+
   const recentChats = chats.slice(0, 3);
   const firstName = user?.full_name?.split(' ')[0] || 'there';
 
@@ -123,6 +119,14 @@ export default function LandlordDashboard() {
         <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">roomflo</p>
         <h1 className="text-2xl font-extrabold text-foreground">Hey, {firstName} 👋</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Here's your portfolio at a glance.</p>
+      </div>
+
+      {/* Metrics scroll — top of page */}
+      <div className="flex gap-3 overflow-x-auto px-5 pb-1 scrollbar-hide mb-5">
+        <MetricCard icon={DollarSign} label="Weekly rent due" value={money(due)} tone="amber" />
+        <MetricCard icon={CheckCircle2} label="Collected" value={money(collected)} tone="emerald" />
+        {overdue > 0 && <MetricCard icon={AlertTriangle} label="Overdue" value={money(overdue)} tone="red" />}
+        <MetricCard icon={net >= 0 ? TrendingUp : TrendingDown} label="Net cashflow" value={`${net >= 0 ? '+' : '-'}${money(Math.abs(net))}`} tone="blue" />
       </div>
 
       {/* Hero summary card */}
@@ -156,34 +160,21 @@ export default function LandlordDashboard() {
         </div>
       </div>
 
-      {/* Metrics scroll */}
-      <div className="flex gap-3 overflow-x-auto px-5 pb-1 scrollbar-hide mb-6">
-        <MetricCard icon={DollarSign} label="Rent due" value={money(due)} tone="amber" />
-        <MetricCard icon={CheckCircle2} label="Collected" value={money(collected)} tone="emerald" />
-        {overdue > 0 && <MetricCard icon={AlertTriangle} label="Overdue" value={money(overdue)} tone="red" />}
-        <MetricCard icon={net >= 0 ? TrendingUp : TrendingDown} label="Net cashflow" value={`${net >= 0 ? '+' : '-'}${money(Math.abs(net))}`} tone="blue" />
-      </div>
-
       <div className="px-5 space-y-6">
-        {/* Action required */}
+        {/* Quick actions */}
         <section>
-          <SectionHeader title="Action required" linkTo="/properties" linkLabel="Properties" />
-          {actionCharges.length === 0 ? (
-            <div className="bg-white rounded-2xl p-4 text-sm text-muted-foreground border border-border/40 text-center">
-              ✅ No urgent actions right now
-            </div>
-          ) : actionCharges.map((charge) => (
-            <div key={charge.id} className="mb-2">
-              <ActionRow
-                to={charge.property_id ? `/properties/${charge.property_id}` : '/properties'}
-                icon={charge.status === 'paid' ? CheckCircle2 : AlertTriangle}
-                iconBg={charge.status === 'paid' ? 'bg-emerald-50' : 'bg-red-50'}
-                title={charge.status === 'paid' ? 'Payment awaiting confirmation' : 'Overdue rent'}
-                subtitle={`${money(charge.amount)} · Due ${prettyDate(charge.due_date)}`}
-                badge={<StatusBadge status={charge.status === 'paid' ? 'pending' : 'overdue'} label={charge.status === 'paid' ? 'Confirm' : 'Overdue'} />}
-              />
-            </div>
-          ))}
+          <SectionHeader title="Quick actions" />
+          <QuickActions />
+        </section>
+
+        {/* Needs attention feed */}
+        <section>
+          <SectionHeader title="Needs attention" linkTo="/maintenance" linkLabel="All repairs" />
+          <NeedsAttentionFeed
+            charges={charges}
+            maintenance={maintenance}
+            tenancies={tenancies.filter(t => t.status === 'active')}
+          />
         </section>
 
         {/* Maintenance summary card */}
@@ -191,7 +182,6 @@ export default function LandlordDashboard() {
           <SectionHeader title="Maintenance" linkTo="/maintenance" linkLabel="Manage" />
           <div className="bg-white rounded-3xl border border-border/40 shadow-sm overflow-hidden">
             <div className="flex items-stretch">
-              {/* In-progress count */}
               <div className="flex-1 flex flex-col items-center justify-center py-5 border-r border-border/40">
                 <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center mb-2">
                   <Wrench className="w-5 h-5 text-orange-500" />
@@ -199,16 +189,13 @@ export default function LandlordDashboard() {
                 <p className="text-3xl font-extrabold text-orange-600">{inProgressRepairs.length}</p>
                 <p className="text-xs text-muted-foreground font-medium mt-0.5">In Progress</p>
               </div>
-              {/* Most recent issue */}
               <div className="flex-[2] flex flex-col justify-center px-4 py-4">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Latest Issue</p>
                 {mostRecentIssue ? (
                   <>
                     <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">{mostRecentIssue.title}</p>
                     <p className="text-xs text-muted-foreground mt-1">{prettyDate(mostRecentIssue.submitted_at)}</p>
-                    <div className="mt-2">
-                      <StatusBadge status={mostRecentIssue.status} />
-                    </div>
+                    <div className="mt-2"><StatusBadge status={mostRecentIssue.status} /></div>
                   </>
                 ) : (
                   <p className="text-sm text-muted-foreground">No open issues 🎉</p>
@@ -217,44 +204,6 @@ export default function LandlordDashboard() {
             </div>
           </div>
         </section>
-
-        {/* Open repairs */}
-        {openRepairs.length > 0 && (
-          <section>
-            <SectionHeader title="Open repairs" linkTo="/maintenance" linkLabel="Manage" />
-            {openRepairs.map((item) => (
-              <div key={item.id} className="mb-2">
-                <ActionRow
-                  to={`/maintenance/${item.id}`}
-                  icon={Wrench}
-                  iconBg="bg-orange-50"
-                  title={item.title}
-                  subtitle={prettyDate(item.submitted_at)}
-                  badge={<StatusBadge status={item.status} />}
-                />
-              </div>
-            ))}
-          </section>
-        )}
-
-        {/* Expiring leases */}
-        {expiring.length > 0 && (
-          <section>
-            <SectionHeader title="Lease expiry" linkTo="/lease-expiry" linkLabel="Tracker" />
-            {expiring.map((t) => (
-              <div key={t.id} className="mb-2">
-                <ActionRow
-                  to={t.room_id ? `/rooms/${t.room_id}` : `/properties/${t.property_id}`}
-                  icon={CalendarClock}
-                  iconBg="bg-violet-50"
-                  title={t.tenant_name || 'Tenant'}
-                  subtitle={`Ends ${prettyDate(t.lease_end)}`}
-                  badge={<StatusBadge status={t.lease.status} label={t.lease.label} />}
-                />
-              </div>
-            ))}
-          </section>
-        )}
 
         {/* Messages */}
         <section>
@@ -279,7 +228,7 @@ export default function LandlordDashboard() {
 
         {/* Calendar */}
         <section>
-          <SectionHeader title="Calendar" linkTo="/lease-expiry" linkLabel="Leases" />
+          <SectionHeader title="Calendar" linkTo="/lease-expiry" linkLabel="Agreements" />
           <DashboardCalendar
             charges={charges.filter(c => ['upcoming', 'due', 'overdue'].includes(c.status))}
             tenancies={tenancies.filter(t => t.status === 'active')}
