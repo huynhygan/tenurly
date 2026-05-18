@@ -135,29 +135,34 @@ export default function AcceptInvite() {
     );
   }
 
-  // status === 'found'
+  // found
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="max-w-sm w-full p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <div className="flex justify-center">
-            <div className="p-4 rounded-full bg-accent"><Home className="w-8 h-8 text-primary" /></div>
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+            <Home className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-xl font-bold">Tenancy Invite</h1>
-          <p className="text-sm text-muted-foreground">
-            You've been invited to join a property as a tenant.
-          </p>
+          <div>
+            <h1 className="text-xl font-bold">You've been invited</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Your landlord has set up your tenancy. Accept below to get access to your rent history, repairs, and documents.
+            </p>
+          </div>
         </div>
-        <div className="bg-muted rounded-xl p-4 space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-muted-foreground">Invited email</span><span className="font-medium">{invite?.tenant_email}</span></div>
+        <div className="bg-muted/60 rounded-2xl p-4 space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Your email</span>
+            <span className="font-medium">{invite?.tenant_email}</span>
+          </div>
         </div>
         <div className="space-y-2">
-          <Button className="w-full" onClick={handleAccept} disabled={status === 'accepting'}>
-            {status === 'accepting' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-            Accept Invite
+          <Button className="w-full h-12 text-base font-semibold gap-2" onClick={handleAccept} disabled={status === 'accepting'}>
+            {status === 'accepting' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+            Accept & set up my account
           </Button>
-          <Button variant="outline" className="w-full" onClick={handleReject} disabled={status === 'accepting'}>
-            Decline
+          <Button variant="ghost" className="w-full text-muted-foreground text-sm" onClick={handleReject} disabled={status === 'accepting'}>
+            Decline invite
           </Button>
         </div>
       </Card>

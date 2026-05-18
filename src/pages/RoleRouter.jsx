@@ -1,11 +1,11 @@
 import React from 'react';
 import { useAuth } from '@/lib/AuthContext';
-
-const LandlordDashboard = React.lazy(() => import('./LandlordDashboard'));
-const TenantDashboard   = React.lazy(() => import('./TenantDashboard'));
+import LandlordDashboard from './LandlordDashboard';
+import TenantDashboard from './TenantDashboard';
 
 export default function RoleRouter() {
-  const { currentMode } = useAuth();
-  if (currentMode === 'landlord') return <LandlordDashboard />;
-  return <TenantDashboard />;
+  const { user } = useAuth();
+  const mode = user?.current_mode || user?.role;
+  if (mode === 'tenant') return <TenantDashboard />;
+  return <LandlordDashboard />;
 }

@@ -5,7 +5,7 @@ import { useTabHistory } from '@/lib/TabHistoryContext';
 
 const landlordTabs = [
   { root: '/',             label: 'Home',    icon: Home },
-  { root: '/properties',  label: 'Houses',  icon: BedDouble },
+  { root: '/properties',  label: 'Rooms',   icon: BedDouble },
   { root: '/messages',    label: 'Messages',icon: MessageCircle },
   { root: '/maintenance', label: 'Repairs', icon: Wrench },
   { root: '/settings',    label: 'More',    icon: MoreHorizontal },

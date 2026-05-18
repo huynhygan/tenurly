@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { UserPlus, DollarSign, FileText, Pencil, Trash2, AlertTriangle, Upload } from 'lucide-react';
+import { UserPlus, DollarSign, FileText, Pencil, Trash2, AlertTriangle, Upload, Mail, CheckCircle2 } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ export default function RoomDetail() {
   const [leaseOpen, setLeaseOpen] = useState(false);
   const [leaseUrl, setLeaseUrl] = useState('');
   const [leaseName, setLeaseName] = useState('');
+  const [inviteSuccess, setInviteSuccess] = useState(null); // { email, code }
 
   const { data: room } = useQuery({
     queryKey: ['room', id],
@@ -77,12 +78,12 @@ export default function RoomDetail() {
       });
       return tenancy;
     },
-    onSuccess: () => {
+    onSuccess: (tenancy, variables) => {
       queryClient.invalidateQueries({ queryKey: ['roomTenancies', id] });
       queryClient.invalidateQueries({ queryKey: ['room', id] });
       setTenantOpen(false);
       setTenantForm(BLANK_TENANT);
-      toast.success('Tenant assigned & invite sent');
+      setInviteSuccess({ email: variables.tenant_email });
     },
   });
 
@@ -167,6 +168,20 @@ export default function RoomDetail() {
       />
 
       <div className="px-4 space-y-4 mt-2">
+        {/* Invite success banner */}
+        {inviteSuccess && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-emerald-800">Invite sent!</p>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                An invite link has been sent to <span className="font-semibold">{inviteSuccess.email}</span>. Once they accept, their account will be linked automatically.
+              </p>
+              <button className="text-xs text-emerald-700 underline mt-1" onClick={() => setInviteSuccess(null)}>Dismiss</button>
+            </div>
+          </div>
+        )}
+
         {activeTenancy ? (
           <>
             <Card className="p-4 space-y-3">
@@ -199,16 +214,18 @@ export default function RoomDetail() {
             </div>
           </>
         ) : (
-          <EmptyState
-            icon={UserPlus}
-            title="No tenant assigned"
-            description="Add a tenant to this room to start tracking rent"
-            action={
-              <Button className="gap-1" onClick={() => setTenantOpen(true)}>
-                <UserPlus className="w-4 h-4" />Assign Tenant
-              </Button>
-            }
-          />
+          <div className="bg-white rounded-2xl border border-border/40 p-6 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+              <UserPlus size={22} className="text-primary" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">This room is vacant</p>
+              <p className="text-sm text-muted-foreground mt-1">Add a tenant to start tracking rent and send them an invite link.</p>
+            </div>
+            <Button className="gap-2 w-full" onClick={() => setTenantOpen(true)}>
+              <UserPlus className="w-4 h-4" /> Add tenant & send invite
+            </Button>
+          </div>
         )}
 
         {tenancies.filter(t => t.status !== 'active').length > 0 && (

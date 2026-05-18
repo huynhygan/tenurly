@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell
 } from 'recharts';
-import { Download, TrendingUp, Home, Users } from 'lucide-react';
+import { Download, TrendingUp, Home, Users, FileSpreadsheet } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Card } from '@/components/ui/card';
@@ -112,6 +112,27 @@ export default function Reports() {
   const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
   const netCashflow = totalIncome - totalExpenses;
 
+  const handleDownloadCSV = () => {
+    const rows = [
+      ['Date', 'Type', 'Description', 'Amount (AUD)', 'Status'],
+      ...charges
+        .filter(c => ['paid', 'confirmed'].includes(c.status))
+        .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
+        .map(c => [c.due_date || '', 'Income', `Rent - ${c.tenancy_id || ''}`, c.amount, c.status]),
+      ...expenses
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .map(e => [e.date || '', 'Expense', e.description || e.category || '', e.amount, 'paid']),
+    ];
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `landlordly-tax-export-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleDownloadPDF = async () => {
     const el = reportRef.current;
     if (!el) return;
@@ -133,16 +154,28 @@ export default function Reports() {
   return (
     <div>
       <PageHeader
-        title="Reports"
+        title="Reports & Tax Export"
         back
         action={
-          <Button size="sm" className="gap-1.5 rounded-xl" onClick={handleDownloadPDF}>
-            <Download className="w-4 h-4" /> Export PDF
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="gap-1.5 rounded-xl" onClick={handleDownloadCSV}>
+              <FileSpreadsheet className="w-4 h-4" /> CSV
+            </Button>
+            <Button size="sm" className="gap-1.5 rounded-xl" onClick={handleDownloadPDF}>
+              <Download className="w-4 h-4" /> PDF
+            </Button>
+          </div>
         }
       />
 
       <div ref={reportRef} className="px-4 pb-8 space-y-5 mt-2 bg-background">
+        {/* Tax export hint */}
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-center gap-3">
+          <FileSpreadsheet size={18} className="text-amber-600 shrink-0" />
+          <p className="text-xs text-amber-800">
+            <span className="font-semibold">Tax time?</span> Tap <span className="font-semibold">CSV</span> to export all income &amp; expenses in a spreadsheet ready for your accountant.
+          </p>
+        </div>
         {/* Summary tiles */}
         <div className="flex gap-3">
           <SummaryTile icon={TrendingUp} label="Total Income" value={money(totalIncome)} sub="All time collected" />
