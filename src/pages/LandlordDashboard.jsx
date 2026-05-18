@@ -6,8 +6,9 @@ export default function LandlordDashboard() {
   const [user, setUser] = useState(null);
   
   useEffect(() => {
-    const el = document.querySelector('meta[name="description"]');
-    if (el) el.setAttribute('content', 'Your Tenurly landlord dashboard. See rent status, open maintenance jobs, lease renewals, and property overview at a glance.');
+    import('@/lib/setPageMeta').then(({ setPageMeta }) => {
+      setPageMeta('Your Dashboard — Tenurly', 'Your Tenurly landlord dashboard. See rent status, open maintenance jobs, lease renewals, and property overview at a glance.', false);
+    });
   }, []);
   const [properties, setProperties] = useState([]);
   const [tenancies, setTenancies] = useState([]);
@@ -50,7 +51,7 @@ export default function LandlordDashboard() {
     );
   }
 
-  const firstName = user?.full_name?.split(" ")[0] || "there";
+  const firstName = user?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "there";
   const isNewUser = properties.length === 0;
 
   const overdueCharges = rentCharges.filter(r => r.status === "overdue" || r.status === "unpaid");

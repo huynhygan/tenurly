@@ -6,8 +6,9 @@ export default function TenantDashboard() {
   const [user, setUser] = useState(null);
   
   useEffect(() => {
-    const el = document.querySelector('meta[name="description"]');
-    if (el) el.setAttribute('content', 'Your Tenurly tenant dashboard. Check your rent, submit repairs, download documents, and message your landlord.');
+    import('@/lib/setPageMeta').then(({ setPageMeta }) => {
+      setPageMeta('Your Dashboard — Tenurly', 'Your Tenurly tenant dashboard. Check your rent, submit repairs, download documents, and message your landlord.', false);
+    });
   }, []);
   const [tenancy, setTenancy] = useState(null);
   const [rentCharges, setRentCharges] = useState([]);
@@ -51,7 +52,7 @@ export default function TenantDashboard() {
     );
   }
 
-  const firstName = user?.full_name?.split(" ")[0] || "there";
+  const firstName = user?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "there";
   const overdueRent = rentCharges.filter(r => r.status === "overdue" || r.status === "unpaid");
   const nextDue = rentCharges.find(r => r.status === "due" || r.status === "upcoming");
   const unreadNotifs = notifications.filter(n => !n.read).length;
