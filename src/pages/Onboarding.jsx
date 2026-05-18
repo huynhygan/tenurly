@@ -4,10 +4,10 @@ import { base44 } from "@/api/base44Client";
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  useEffect(() => { document.title = 'Get started — Tenurly'; }, []);
   useEffect(() => {
-    const el = document.querySelector('meta[name="description"]');
-    if (el) el.setAttribute('content', 'Get started with Tenurly in minutes. Add your first property, invite your tenant, and start tracking rent today.');
+    import('@/lib/setPageMeta').then(({ setPageMeta }) => {
+      setPageMeta('Get started — Tenurly', 'Get started with Tenurly in minutes. Add your first property, invite your tenant, and start tracking rent today.', true, '/onboarding');
+    });
   }, []);
   const [selected, setSelected] = useState(null);
   const [tenantExpanded, setTenantExpanded] = useState(false);

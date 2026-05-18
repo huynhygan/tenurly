@@ -483,9 +483,14 @@ function Footer() {
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   React.useEffect(() => {
-    document.title = 'Tenurly — Self-Managed Property, Sorted';
-    const el = document.querySelector('meta[name="description"]');
-    if (el) el.setAttribute('content', 'Tenurly — smart, simple property management for self-managed landlords. Track rent, handle maintenance, and stay connected with tenants. Free to start.');
+    import('@/lib/setPageMeta').then(({ setPageMeta }) => {
+      setPageMeta(
+        'Tenurly — Self-Managed Property, Sorted',
+        'Tenurly — smart, simple property management for self-managed landlords. Track rent, handle maintenance, and stay connected with tenants. Free to start.',
+        true,
+        '/'
+      );
+    });
     base44.auth.isAuthenticated().then(setIsLoggedIn);
   }, []);
 

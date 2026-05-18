@@ -63,7 +63,7 @@ function FaqItem({ q, a }) {
 export default function Pricing() {
   React.useEffect(() => {
     import('@/lib/setPageMeta').then(({ setPageMeta }) => {
-      setPageMeta('Pricing — Tenurly', 'Simple, transparent pricing for self-managed landlords. Start free with 1 property. Scale to unlimited. Tenants are always free.', true);
+      setPageMeta('Pricing — Tenurly', 'Simple, transparent pricing for self-managed landlords. Start free with 1 property. Scale to unlimited. Tenants are always free.', true, '/pricing');
     });
   }, []);
   return (

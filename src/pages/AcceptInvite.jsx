@@ -81,7 +81,7 @@ export default function AcceptInvite() {
 
   useEffect(() => {
     import('@/lib/setPageMeta').then(({ setPageMeta }) => {
-      setPageMeta("You've been invited — Tenurly", 'Your landlord has invited you to Tenurly. Create your free account to view your rent, submit repairs, and access your lease documents.', true);
+      setPageMeta("You've been invited — Tenurly", 'Your landlord has invited you to Tenurly. Create your free account to view your rent, submit repairs, and access your lease documents.', true, '/accept-invite');
     });
   }, []);
   useEffect(() => {
