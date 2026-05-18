@@ -478,6 +478,7 @@ function Footer() {
 /* ─── PAGE ─────────────────────────────────────────── */
 
 export default function Home() {
+  React.useEffect(() => { document.title = 'Tenurly — Smart property management'; }, []);
   return (
     <div className="min-h-screen" style={{ fontFamily: 'DM Sans, Plus Jakarta Sans, sans-serif' }}>
       <NavBar />

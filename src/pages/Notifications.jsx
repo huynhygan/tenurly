@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
@@ -106,6 +106,7 @@ function NotifItem({ n, group, onRead }) {
 export default function Notifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  useEffect(() => { document.title = 'Notifications — Tenurly'; }, []);
   const qKey = ['notifications', user?.id];
 
   const { data: notifications = [], refetch } = useQuery({
