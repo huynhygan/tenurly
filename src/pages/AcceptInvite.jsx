@@ -2,34 +2,85 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Loader2, LogIn, UserPlus, Lock } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, Lock, Home, ArrowRight } from 'lucide-react';
 
-const Logo = () => (
-  <div className="flex items-center gap-2 justify-center mb-8">
-    <div className="w-9 h-9 rounded-xl bg-[#0f1f3d] flex items-center justify-center">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <rect x="1" y="6" width="16" height="11" rx="1.5" stroke="white" strokeWidth="1.5"/>
-        <path d="M5 6V4.5a4 4 0 0 1 8 0V6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-        <circle cx="9" cy="11.5" r="1.5" fill="white"/>
-      </svg>
+/* ─── SHARED LAYOUT ─────────────────────────────────────── */
+
+function Page({ children }) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12"
+      style={{ background: 'linear-gradient(135deg, #f0fdf9 0%, #f8faff 60%, #fff 100%)' }}>
+      {children}
     </div>
-    <span className="text-xl font-bold text-[#0f1f3d]">Tenurly</span>
-  </div>
-);
+  );
+}
+
+function Logo() {
+  return (
+    <div className="flex items-center gap-2 mb-8">
+      <div className="w-9 h-9 rounded-xl bg-[#0f1f3d] flex items-center justify-center">
+        <Home size={16} className="text-white" />
+      </div>
+      <span className="text-xl font-bold text-[#0f1f3d]">Tenurly</span>
+    </div>
+  );
+}
+
+function Card({ children, className = '' }) {
+  return (
+    <div className={`bg-white rounded-3xl shadow-lg border border-slate-100 w-full max-w-[480px] p-8 ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+const BENEFITS = [
+  'See your rent status and full payment history',
+  'Submit and track maintenance and repair requests',
+  'Download your lease and important documents',
+  'Message your landlord directly',
+  'Get notified about important updates',
+];
+
+function BenefitsList() {
+  return (
+    <div className="bg-slate-50 rounded-2xl p-4 space-y-2.5">
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">What you can do</p>
+      {BENEFITS.map(b => (
+        <div key={b} className="flex items-start gap-2.5">
+          <CheckCircle2 size={15} className="text-[#0d9e7e] mt-0.5 shrink-0" />
+          <span className="text-sm text-slate-700">{b}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PrivacyNote() {
+  return (
+    <div className="flex items-start gap-2 text-xs text-slate-400 leading-relaxed pt-2">
+      <Lock size={12} className="mt-0.5 shrink-0 text-[#0d9e7e]" />
+      <span>
+        <span className="font-semibold text-slate-500">Your data is private.</span>{' '}
+        Only you and your landlord can see your tenancy information. Tenurly never shares your data with real estate agents, advertisers, or anyone else.
+      </span>
+    </div>
+  );
+}
+
+/* ─── MAIN COMPONENT ─────────────────────────────────────── */
 
 export default function AcceptInvite() {
   const { user, isLoadingAuth, addRole } = useAuth();
   const navigate = useNavigate();
   const [status, setStatus] = useState('loading');
   const [invite, setInvite] = useState(null);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [property, setProperty] = useState(null);
 
   const code = new URLSearchParams(window.location.search).get('code');
 
   useEffect(() => {
-    if (!code) { setStatus('error'); setErrorMsg('No invite code found in URL.'); return; }
+    if (!code) { setStatus('error'); return; }
     if (isLoadingAuth) return;
     if (!user) { setStatus('auth_required'); return; }
     loadInvite();
@@ -38,11 +89,17 @@ export default function AcceptInvite() {
   const loadInvite = async () => {
     setStatus('loading');
     const results = await base44.entities.Invite.filter({ code });
-    if (!results.length) { setStatus('error'); setErrorMsg('This invite link has expired or already been used.'); return; }
+    if (!results.length) { setStatus('error'); return; }
     const inv = results[0];
-    if (inv.status === 'accepted') { setStatus('error'); setErrorMsg('This invite link has expired or already been used.'); return; }
-    if (inv.status === 'expired') { setStatus('error'); setErrorMsg('This invite link has expired or already been used.'); return; }
+    if (inv.status === 'accepted' || inv.status === 'expired') { setStatus('error'); return; }
     setInvite(inv);
+
+    // Try to load property details for context
+    if (inv.property_id) {
+      const props = await base44.entities.Property.filter({ id: inv.property_id });
+      if (props.length) setProperty(props[0]);
+    }
+
     setStatus('found');
   };
 
@@ -60,144 +117,196 @@ export default function AcceptInvite() {
     setStatus('rejected');
   };
 
-  const wrap = (children) => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50/30 flex flex-col items-center justify-center px-4 py-12">
-      <Logo />
-      <Card className="max-w-sm w-full p-8">{children}</Card>
-    </div>
-  );
-
-  if (status === 'loading') return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-    </div>
-  );
-
-  if (status === 'auth_required') {
-    const returnUrl = window.location.href;
-    return wrap(
-      <div className="text-center space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#0f1f3d]">You've been invited to Tenurly</h1>
-          <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-            Tenurly connects you with your landlord. You'll use it to view your rent, lodge repairs, and access your documents.
-          </p>
-        </div>
-        <div className="bg-[#e8f7f3] rounded-2xl p-4 text-sm text-left space-y-2">
-          {[
-            'See your rent status and payment history',
-            'Submit and track maintenance requests',
-            'Download your lease and important documents',
-            'Message your landlord directly',
-          ].map(item => (
-            <div key={item} className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#0d9e7e] mt-0.5 shrink-0" />
-              <span className="text-slate-700">{item}</span>
-            </div>
-          ))}
-        </div>
-        <div className="space-y-2">
-          <Button className="w-full h-12 text-base font-semibold gap-2 bg-[#0f1f3d] hover:bg-[#1a3460]" onClick={() => base44.auth.redirectToLogin(returnUrl)}>
-            <UserPlus className="w-4 h-4" /> Create my account
-          </Button>
-          <Button variant="outline" className="w-full gap-2" onClick={() => base44.auth.redirectToLogin(returnUrl)}>
-            <LogIn className="w-4 h-4" /> I already have an account — Sign in
-          </Button>
-        </div>
-        <div className="flex items-center gap-2 justify-center text-xs text-slate-400">
-          <Lock className="w-3 h-3" />
-          <span>Your data is private. Only you and your landlord can see your tenancy information.</span>
-        </div>
-      </div>
+  // ── Loading ──
+  if (status === 'loading' || isLoadingAuth) {
+    return (
+      <Page>
+        <Logo />
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-[#0d9e7e] rounded-full animate-spin" />
+      </Page>
     );
   }
 
-  if (status === 'accepted') return wrap(
-    <div className="text-center space-y-4">
-      <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto">
-        <CheckCircle2 className="w-8 h-8 text-emerald-600" />
-      </div>
-      <h1 className="text-xl font-bold text-[#0f1f3d]">You're in!</h1>
-      <p className="text-sm text-slate-500">Your tenancy has been activated. Welcome to your new home.</p>
-      <Button className="w-full bg-[#0d9e7e] hover:bg-[#0b8a6e] gap-2" onClick={() => navigate('/')}>
-        Go to my dashboard →
-      </Button>
-    </div>
-  );
+  // ── Unauthenticated: show full invite preview + sign-up CTA ──
+  if (status === 'auth_required') {
+    const returnUrl = window.location.href;
+    return (
+      <Page>
+        <Logo />
+        <Card>
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-[#0d9e7e]/10 flex items-center justify-center mx-auto mb-4">
+              <Home size={24} className="text-[#0d9e7e]" />
+            </div>
+            <h1 className="text-2xl font-bold text-[#0f1f3d] mb-2">You've been invited to Tenurly</h1>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Your landlord has set up your tenancy. Create your free account to get access.
+            </p>
+          </div>
 
-  if (status === 'rejected') return wrap(
-    <div className="text-center space-y-4">
-      <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto">
-        <XCircle className="w-8 h-8 text-red-500" />
-      </div>
-      <h1 className="text-xl font-bold text-[#0f1f3d]">Invite declined</h1>
-      <p className="text-sm text-slate-500">You've declined this tenancy invite.</p>
-      <Button variant="outline" className="w-full" onClick={() => navigate('/')}>Go to home</Button>
-    </div>
-  );
+          <div className="bg-slate-50 rounded-2xl px-4 py-3 mb-5 text-sm text-slate-600">
+            Tenurly connects you with your landlord so you can manage your tenancy in one place.
+          </div>
 
-  if (status === 'error') return wrap(
-    <div className="text-center space-y-4">
-      <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto">
-        <XCircle className="w-8 h-8 text-red-500" />
-      </div>
-      <h1 className="text-xl font-bold text-[#0f1f3d]">This link isn't valid</h1>
-      <p className="text-sm text-slate-500">{errorMsg}</p>
-      <p className="text-xs text-slate-400">Contact your landlord for a new invite link.</p>
-      <Button variant="outline" className="w-full" onClick={() => base44.auth.redirectToLogin('/')}>Sign in to your existing account →</Button>
-    </div>
-  );
+          <BenefitsList />
 
-  // found
+          <div className="mt-6 space-y-2.5">
+            <button
+              onClick={() => base44.auth.redirectToLogin(returnUrl)}
+              className="w-full h-12 bg-[#0d9e7e] hover:bg-[#0b8a6e] text-white font-semibold rounded-2xl flex items-center justify-center gap-2 transition-colors text-sm"
+            >
+              Create my account <ArrowRight size={16} />
+            </button>
+            <button
+              onClick={() => base44.auth.redirectToLogin(returnUrl)}
+              className="w-full h-11 text-sm font-medium text-slate-500 hover:text-[#0f1f3d] transition-colors"
+            >
+              I already have an account — Sign in
+            </button>
+          </div>
+
+          <PrivacyNote />
+        </Card>
+      </Page>
+    );
+  }
+
+  // ── Invalid / expired invite ──
+  if (status === 'error') {
+    return (
+      <Page>
+        <Logo />
+        <Card>
+          <div className="text-center space-y-4">
+            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto">
+              <XCircle size={28} className="text-red-400" />
+            </div>
+            <h1 className="text-xl font-bold text-[#0f1f3d]">This invite link has expired</h1>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              This link has already been used or is no longer valid. Contact your landlord to request a new invite link.
+            </p>
+            <button
+              onClick={() => base44.auth.redirectToLogin('/')}
+              className="text-sm font-semibold text-[#0d9e7e] hover:underline"
+            >
+              Sign in to your existing account →
+            </button>
+          </div>
+        </Card>
+      </Page>
+    );
+  }
+
+  // ── Accepted ──
+  if (status === 'accepted') {
+    return (
+      <Page>
+        <Logo />
+        <Card>
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto">
+              <CheckCircle2 size={32} className="text-emerald-500" />
+            </div>
+            <h1 className="text-xl font-bold text-[#0f1f3d]">You're in! Welcome to Tenurly.</h1>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Your tenancy has been activated. You can now view your rent, submit repairs, and access your documents.
+            </p>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full h-12 bg-[#0d9e7e] hover:bg-[#0b8a6e] text-white font-semibold rounded-2xl flex items-center justify-center gap-2 transition-colors text-sm"
+            >
+              Go to my dashboard <ArrowRight size={16} />
+            </button>
+          </div>
+        </Card>
+      </Page>
+    );
+  }
+
+  // ── Rejected ──
+  if (status === 'rejected') {
+    return (
+      <Page>
+        <Logo />
+        <Card>
+          <div className="text-center space-y-4">
+            <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
+              <XCircle size={26} className="text-slate-400" />
+            </div>
+            <h1 className="text-xl font-bold text-[#0f1f3d]">Invite declined</h1>
+            <p className="text-sm text-slate-500">You've declined this tenancy invite. Contact your landlord if you change your mind.</p>
+            <button
+              onClick={() => navigate('/')}
+              className="text-sm font-semibold text-[#0d9e7e] hover:underline"
+            >
+              Back to home →
+            </button>
+          </div>
+        </Card>
+      </Page>
+    );
+  }
+
+  // ── Found — signed-in user, ready to accept ──
+  const propertyLine = property
+    ? `${property.address || property.name}`
+    : null;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50/30 flex flex-col items-center justify-center px-4 py-12">
+    <Page>
       <Logo />
-      <Card className="max-w-sm w-full p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-[#0f1f3d]">You've been invited to Tenurly</h1>
+      <Card>
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 rounded-2xl bg-[#0d9e7e]/10 flex items-center justify-center mx-auto mb-4">
+            <Home size={24} className="text-[#0d9e7e]" />
+          </div>
+          <h1 className="text-2xl font-bold text-[#0f1f3d] mb-2">You've been invited to Tenurly</h1>
           <p className="text-sm text-slate-500 leading-relaxed">
-            Your landlord has set up your tenancy. Accept below to get access to your rent history, repairs, and documents.
+            {propertyLine
+              ? <>Your landlord has added you to <span className="font-semibold text-slate-700">{propertyLine}</span>.</>
+              : 'Your landlord has set up your tenancy and invited you to join.'}
           </p>
         </div>
 
-        <div className="bg-[#e8f7f3] rounded-2xl p-4 text-sm space-y-2">
-          {[
-            'See your rent status and payment history',
-            'Submit and track maintenance requests',
-            'Download your lease and important documents',
-            'Message your landlord directly',
-          ].map(item => (
-            <div key={item} className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#0d9e7e] mt-0.5 shrink-0" />
-              <span className="text-slate-700">{item}</span>
-            </div>
-          ))}
+        {/* What is Tenurly */}
+        <div className="bg-slate-50 rounded-2xl px-4 py-3 mb-4 text-sm text-slate-600 leading-relaxed">
+          Tenurly connects you with your landlord so you can manage your tenancy in one place.
         </div>
 
-        <div className="bg-muted/60 rounded-2xl p-3 text-sm flex justify-between">
-          <span className="text-slate-500">Invited email</span>
-          <span className="font-medium text-[#0f1f3d]">{invite?.tenant_email}</span>
-        </div>
+        {/* Benefits */}
+        <BenefitsList />
 
-        <div className="space-y-2">
-          <Button
-            className="w-full h-12 text-base font-semibold gap-2 bg-[#0d9e7e] hover:bg-[#0b8a6e]"
+        {/* Invited email chip */}
+        {invite?.tenant_email && (
+          <div className="mt-4 flex items-center justify-between bg-slate-50 rounded-2xl px-4 py-3 text-sm">
+            <span className="text-slate-400">Invited email</span>
+            <span className="font-semibold text-[#0f1f3d]">{invite.tenant_email}</span>
+          </div>
+        )}
+
+        {/* CTAs */}
+        <div className="mt-5 space-y-2.5">
+          <button
             onClick={handleAccept}
             disabled={status === 'accepting'}
+            className="w-full h-12 bg-[#0d9e7e] hover:bg-[#0b8a6e] disabled:opacity-60 text-white font-semibold rounded-2xl flex items-center justify-center gap-2 transition-colors text-sm"
           >
-            {status === 'accepting' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-            Accept & set up my account
-          </Button>
-          <Button variant="ghost" className="w-full text-slate-400 text-sm" onClick={handleReject} disabled={status === 'accepting'}>
+            {status === 'accepting'
+              ? <><Loader2 size={16} className="animate-spin" /> Setting up your account…</>
+              : <>Accept & set up my account <ArrowRight size={16} /></>}
+          </button>
+          <button
+            onClick={handleReject}
+            disabled={status === 'accepting'}
+            className="w-full h-10 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+          >
             Decline invite
-          </Button>
+          </button>
         </div>
 
-        <div className="flex items-center gap-2 justify-center text-xs text-slate-400">
-          <Lock className="w-3 h-3" />
-          <span>Your data is private. Only you and your landlord can see your tenancy information.</span>
-        </div>
+        <PrivacyNote />
       </Card>
-    </div>
+    </Page>
   );
 }
