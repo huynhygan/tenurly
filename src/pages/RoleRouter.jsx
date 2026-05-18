@@ -24,7 +24,7 @@ export default function RoleRouter() {
     setSaving(true);
     if (selected === 'landlord') {
       await base44.auth.updateMe({ current_mode: 'landlord' });
-      navigate('/');
+      navigate('/dashboard');
     } else {
       setShowTenantInfo(true);
       setSaving(false);

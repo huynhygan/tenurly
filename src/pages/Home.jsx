@@ -481,7 +481,12 @@ function Footer() {
 /* ─── PAGE ─────────────────────────────────────────── */
 
 export default function Home() {
-  React.useEffect(() => { document.title = 'Tenurly — Self-Managed Property, Sorted'; }, []);
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  React.useEffect(() => {
+    document.title = 'Tenurly — Self-Managed Property, Sorted';
+    base44.auth.isAuthenticated().then(setIsLoggedIn);
+  }, []);
+
   return (
     <div className="min-h-screen">
       <link

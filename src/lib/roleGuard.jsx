@@ -16,8 +16,8 @@ export function RouteGuard({ children }) {
   const isLandlordRoute = LANDLORD_ROUTES.some(r => path.startsWith(r));
   const isTenantRoute = TENANT_ROUTES.some(r => path.startsWith(r));
 
-  if (isLandlordRoute && currentMode !== 'landlord') return <Navigate to="/" replace />;
-  if (isTenantRoute && currentMode !== 'tenant') return <Navigate to="/" replace />;
+  if (isLandlordRoute && currentMode !== 'landlord') return <Navigate to="/dashboard" replace />;
+  if (isTenantRoute && currentMode !== 'tenant') return <Navigate to="/dashboard" replace />;
 
   return children;
 }
