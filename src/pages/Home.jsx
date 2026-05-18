@@ -99,12 +99,9 @@ function NavBar() {
     <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-sm">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-[#0f1f3d] flex items-center justify-center">
-            <HomeIcon size={15} className="text-white" />
-          </div>
-          <span className="font-bold text-lg text-[#0f1f3d]" style={{ fontFamily: 'DM Sans, sans-serif' }}>Tenurly</span>
-        </div>
+        <a href="/" className="flex items-center">
+          <img src="https://media.base44.com/images/public/69bf28cc1f96db7603e0839d/d8ea2376e_tenurly-logo-horizontal.svg" alt="Tenurly" className="h-6" />
+        </a>
         {/* Nav links — hidden on mobile */}
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
           <button onClick={() => scrollTo('features')} className="hover:text-[#0f1f3d] transition-colors">Features</button>
@@ -441,12 +438,7 @@ function Footer() {
       <div className="max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">
-                <HomeIcon size={13} className="text-white" />
-              </div>
-              <span className="font-bold text-white text-lg">Tenurly</span>
-            </div>
+            <img src="https://media.base44.com/images/public/69bf28cc1f96db7603e0839d/6aabd63de_tenurly-logo-reversed.svg" alt="Tenurly" className="h-6 mb-3" />
             <p className="text-white/40 text-sm max-w-xs leading-relaxed">
               Smart, simple property management for self-managed landlords across Australia.
             </p>
