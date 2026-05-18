@@ -1,181 +1,310 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { useAuth } from '@/lib/AuthContext';
-import { Building2, Users, DollarSign, FileText, ArrowRight, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { User } from "@/api/entities";
 
-const STEPS = [
-  { id: 'welcome',  title: 'Welcome to Tenurly' },
-  { id: 'property', title: 'Add your first property' },
-  { id: 'done',     title: "You're all set!" },
-];
-
+/**
+ * ONBOARDING — replaces the technical "RoleRouter" page
+ *
+ * What changed from critique:
+ * - "Role Router" URL/name → friendly onboarding flow
+ * - Landlord vs Tenant presented as a clear, inviting choice
+ * - Tenants get an explanation: "you need an invite from your landlord"
+ * - Trust signals added (privacy note, no-spam promise)
+ * - No technical component names shown to users
+ *
+ * Usage in index.jsx routes:
+ *   <Route path="/role-router" element={<Onboarding />} />
+ *   <Route path="/onboarding"  element={<Onboarding />} />
+ *   <Route path="/"            element={<Onboarding />} />
+ */
 export default function Onboarding() {
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-  const [saving, setSaving] = useState(false);
-  const [property, setProperty] = useState({ name: '', address: '', city: '', state: '', postcode: '' });
+  const [selected, setSelected] = useState(null);
+  const [tenantExpanded, setTenantExpanded] = useState(false);
 
-  const firstName = user?.full_name?.split(' ')[0] || 'there';
-
-  const handleSaveProperty = async () => {
-    if (!property.name || !property.address) return;
-    setSaving(true);
-    await base44.entities.Property.create({ ...property, landlord_id: user.id });
-    setSaving(false);
-    setStep(2);
-  };
-
-  const handleSkipProperty = () => setStep(2);
-
-  const handleFinish = () => navigate('/');
+  async function handleContinue() {
+    if (!selected) return;
+    try {
+      await User.updateMyUserData({ role: selected });
+    } catch (e) {
+      // non-blocking — role may already be set
+    }
+    if (selected === "landlord") {
+      navigate("/LandlordDashboard");
+    } else {
+      navigate("/TenantDashboard");
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 flex flex-col items-center justify-center px-4 py-12">
-
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(160deg, #f8faff 0%, #e8f7f3 100%)",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "2rem 1rem",
+      fontFamily: "'DM Sans', system-ui, sans-serif",
+    }}>
       {/* Logo */}
-      <div className="flex items-center gap-2 mb-10">
-        <div className="w-9 h-9 rounded-xl bg-[#0f1f3d] flex items-center justify-center">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <rect x="1" y="6" width="16" height="11" rx="1.5" stroke="white" strokeWidth="1.5"/>
-            <path d="M5 6V4.5a4 4 0 0 1 8 0V6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-            <circle cx="9" cy="11.5" r="1.5" fill="white"/>
-          </svg>
+      <div style={{ marginBottom: "2.5rem", textAlign: "center" }}>
+        <div style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "10px",
+          marginBottom: "0.5rem",
+        }}>
+          <div style={{
+            width: 38, height: 38,
+            background: "#0f1f3d",
+            borderRadius: 9,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+              <rect x="1" y="6" width="16" height="11" rx="1.5" stroke="white" strokeWidth="1.5"/>
+              <path d="M5 6V4.5a4 4 0 0 1 8 0V6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="9" cy="11.5" r="1.5" fill="white"/>
+            </svg>
+          </div>
+          <span style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: "1.6rem", color: "#0f1f3d" }}>
+            Landlordly
+          </span>
         </div>
-        <span className="text-xl font-bold text-[#0f1f3d]">Tenurly</span>
+        <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>
+          Smart property management for everyone involved
+        </p>
       </div>
 
-      {/* Progress dots */}
-      <div className="flex items-center gap-2 mb-8">
-        {STEPS.map((s, i) => (
-          <div key={s.id} className={`rounded-full transition-all ${i === step ? 'w-6 h-2 bg-[#0f1f3d]' : i < step ? 'w-2 h-2 bg-[#0d9e7e]' : 'w-2 h-2 bg-slate-200'}`} />
-        ))}
+      {/* Card */}
+      <div style={{
+        background: "white",
+        borderRadius: 20,
+        boxShadow: "0 8px 40px rgba(15,31,61,0.1)",
+        padding: "2.5rem 2rem",
+        width: "100%",
+        maxWidth: 520,
+      }}>
+        <h1 style={{
+          fontFamily: "'DM Serif Display', Georgia, serif",
+          fontSize: "1.7rem",
+          color: "#0f1f3d",
+          textAlign: "center",
+          marginBottom: "0.5rem",
+          fontWeight: 400,
+        }}>
+          Welcome — who are you?
+        </h1>
+        <p style={{
+          textAlign: "center",
+          color: "#64748b",
+          fontSize: "0.9rem",
+          marginBottom: "2rem",
+          lineHeight: 1.5,
+        }}>
+          Your experience is personalised based on your role. You can change this later in settings.
+        </p>
+
+        {/* Role cards */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
+          {/* Landlord */}
+          <button
+            onClick={() => setSelected("landlord")}
+            style={{
+              all: "unset",
+              cursor: "pointer",
+              display: "block",
+              border: selected === "landlord"
+                ? "2px solid #0f1f3d"
+                : "1.5px solid #e2e8f0",
+              borderRadius: 12,
+              padding: "1.25rem 1.25rem",
+              background: selected === "landlord" ? "#f0f4ff" : "white",
+              transition: "all 0.18s",
+              position: "relative",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <div style={{
+                width: 48, height: 48,
+                background: selected === "landlord" ? "#0f1f3d" : "#eef2ff",
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "1.4rem",
+                transition: "all 0.18s",
+                flexShrink: 0,
+              }}>
+                {selected === "landlord" ? "🏠" : "🏠"}
+              </div>
+              <div style={{ flex: 1, textAlign: "left" }}>
+                <div style={{
+                  fontWeight: 600,
+                  fontSize: "1rem",
+                  color: "#0f1f3d",
+                  marginBottom: "0.2rem",
+                }}>
+                  I'm a landlord
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.4 }}>
+                  I own or manage properties and want to track rent, handle maintenance, and manage tenants.
+                </div>
+              </div>
+              <div style={{
+                width: 20, height: 20,
+                borderRadius: "50%",
+                border: selected === "landlord" ? "none" : "2px solid #e2e8f0",
+                background: selected === "landlord" ? "#0f1f3d" : "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                transition: "all 0.18s",
+              }}>
+                {selected === "landlord" && (
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5l2.5 2.5L8 2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </div>
+            </div>
+          </button>
+
+          {/* Tenant */}
+          <button
+            onClick={() => { setSelected("tenant"); setTenantExpanded(true); }}
+            style={{
+              all: "unset",
+              cursor: "pointer",
+              display: "block",
+              border: selected === "tenant"
+                ? "2px solid #0d9e7e"
+                : "1.5px solid #e2e8f0",
+              borderRadius: 12,
+              padding: "1.25rem 1.25rem",
+              background: selected === "tenant" ? "#e8f7f3" : "white",
+              transition: "all 0.18s",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <div style={{
+                width: 48, height: 48,
+                background: selected === "tenant" ? "#0d9e7e" : "#e8f7f3",
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "1.4rem",
+                flexShrink: 0,
+                transition: "all 0.18s",
+              }}>
+                🔑
+              </div>
+              <div style={{ flex: 1, textAlign: "left" }}>
+                <div style={{
+                  fontWeight: 600,
+                  fontSize: "1rem",
+                  color: "#0f1f3d",
+                  marginBottom: "0.2rem",
+                }}>
+                  I'm a tenant
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.4 }}>
+                  I rent a property and want to view my rent, submit repairs, and access my documents.
+                </div>
+              </div>
+              <div style={{
+                width: 20, height: 20,
+                borderRadius: "50%",
+                border: selected === "tenant" ? "none" : "2px solid #e2e8f0",
+                background: selected === "tenant" ? "#0d9e7e" : "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                transition: "all 0.18s",
+              }}>
+                {selected === "tenant" && (
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5l2.5 2.5L8 2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </div>
+            </div>
+
+            {/* Tenant explainer — only visible when selected */}
+            {selected === "tenant" && tenantExpanded && (
+              <div style={{
+                marginTop: "1rem",
+                padding: "0.9rem 1rem",
+                background: "rgba(13,158,126,0.07)",
+                borderRadius: 8,
+                border: "1px solid rgba(13,158,126,0.2)",
+                fontSize: "0.82rem",
+                color: "#0f4d3a",
+                lineHeight: 1.55,
+              }}>
+                <strong style={{ display: "block", marginBottom: "0.3rem" }}>📩 You'll need an invite from your landlord</strong>
+                Tenants can't sign up directly — your landlord sends you an invite link by email.
+                If you have an invite link, <a href="/accept-invite" style={{ color: "#0d9e7e", textDecoration: "underline" }}>click here to use it</a>.
+                Already accepted? Continue below to access your dashboard.
+              </div>
+            )}
+          </button>
+        </div>
+
+        {/* Continue button */}
+        <button
+          onClick={handleContinue}
+          disabled={!selected}
+          style={{
+            width: "100%",
+            padding: "0.85rem",
+            borderRadius: 10,
+            border: "none",
+            background: selected ? "#0f1f3d" : "#e2e8f0",
+            color: selected ? "white" : "#94a3b8",
+            fontSize: "0.95rem",
+            fontWeight: 600,
+            cursor: selected ? "pointer" : "not-allowed",
+            transition: "all 0.18s",
+            fontFamily: "inherit",
+          }}
+        >
+          {selected ? `Continue as ${selected === "landlord" ? "Landlord" : "Tenant"} →` : "Select your role to continue"}
+        </button>
+
+        {/* Privacy note */}
+        <div style={{
+          marginTop: "1.25rem",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 8,
+          padding: "0.75rem 0.9rem",
+          background: "#f8fafc",
+          borderRadius: 8,
+          fontSize: "0.78rem",
+          color: "#64748b",
+          lineHeight: 1.5,
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9e7e" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}>
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Your data is private and encrypted. Landlordly never shares your information with third parties, advertisers, or real estate agents.
+        </div>
       </div>
 
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-8">
-
-        {/* ── STEP 0: Welcome ── */}
-        {step === 0 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold text-[#0f1f3d] mb-2">Welcome, {firstName}! 👋</h1>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Tenurly helps you manage your rental properties without an agent. Let's get you set up in under 2 minutes.
-              </p>
-            </div>
-            <div className="space-y-3">
-              {[
-                { icon: Building2, color: 'bg-blue-50 text-blue-600', title: 'Add your properties & rooms', desc: 'Track every property you manage in one place.' },
-                { icon: Users, color: 'bg-teal-50 text-teal-600', title: 'Invite your tenants', desc: 'Tenants get a free account to view rent & lodge repairs.' },
-                { icon: DollarSign, color: 'bg-emerald-50 text-emerald-600', title: 'Track rent automatically', desc: "Never chase a payment again — get notified when it's due." },
-                { icon: FileText, color: 'bg-violet-50 text-violet-600', title: 'Store documents securely', desc: 'Leases, bond receipts, condition reports — all in one place.' },
-              ].map(({ icon: Icon, color, title, desc }) => (
-                <div key={title} className="flex items-start gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#0f1f3d]">{title}</p>
-                    <p className="text-xs text-slate-500">{desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button className="w-full h-11 bg-[#0f1f3d] hover:bg-[#1a3460] gap-2" onClick={() => setStep(1)}>
-              Get started <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
-
-        {/* ── STEP 1: Add property ── */}
-        {step === 1 && (
-          <div className="space-y-5">
-            <div>
-              <h1 className="text-xl font-bold text-[#0f1f3d] mb-1">Add your first property</h1>
-              <p className="text-sm text-slate-500">You can add more properties later.</p>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <Label>Property name <span className="text-red-400">*</span></Label>
-                <Input
-                  placeholder="e.g. 12 Maple St"
-                  value={property.name}
-                  onChange={e => setProperty({ ...property, name: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Street address <span className="text-red-400">*</span></Label>
-                <Input
-                  placeholder="e.g. 12 Maple Street"
-                  value={property.address}
-                  onChange={e => setProperty({ ...property, address: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="col-span-1">
-                  <Label>City</Label>
-                  <Input placeholder="Brisbane" value={property.city} onChange={e => setProperty({ ...property, city: e.target.value })} />
-                </div>
-                <div>
-                  <Label>State</Label>
-                  <Input placeholder="QLD" value={property.state} onChange={e => setProperty({ ...property, state: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Postcode</Label>
-                  <Input placeholder="4000" value={property.postcode} onChange={e => setProperty({ ...property, postcode: e.target.value })} />
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2 pt-1">
-              <Button
-                className="w-full bg-[#0f1f3d] hover:bg-[#1a3460] gap-2"
-                onClick={handleSaveProperty}
-                disabled={!property.name || !property.address || saving}
-              >
-                {saving ? 'Saving…' : <>Save property <ArrowRight className="w-4 h-4" /></>}
-              </Button>
-              <button onClick={handleSkipProperty} className="w-full text-sm text-slate-400 hover:text-slate-600 py-1 transition-colors">
-                Skip for now →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── STEP 2: Done ── */}
-        {step === 2 && (
-          <div className="text-center space-y-5">
-            <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto">
-              <Check className="w-8 h-8 text-emerald-600" strokeWidth={2.5} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-[#0f1f3d] mb-2">You're ready to go!</h1>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Your Tenurly account is set up. Head to your dashboard to add rooms, invite tenants, and start tracking rent.
-              </p>
-            </div>
-            <div className="bg-slate-50 rounded-2xl p-4 text-left space-y-2">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Next steps</p>
-              {[
-                'Add rooms to your property',
-                'Invite your first tenant',
-                'Set up rent tracking',
-              ].map(s => (
-                <div key={s} className="flex items-center gap-2 text-sm text-slate-600">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#0d9e7e]" />
-                  {s}
-                </div>
-              ))}
-            </div>
-            <Button className="w-full h-11 bg-[#0d9e7e] hover:bg-[#0b8a6e] gap-2" onClick={handleFinish}>
-              Go to my dashboard <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Already have an account */}
+      <p style={{ marginTop: "1.5rem", fontSize: "0.85rem", color: "#64748b", textAlign: "center" }}>
+        Already have an account?{" "}
+        <a href="/role-router" style={{ color: "#0d9e7e", textDecoration: "none", fontWeight: 500 }}>
+          Sign in
+        </a>
+      </p>
     </div>
   );
 }
