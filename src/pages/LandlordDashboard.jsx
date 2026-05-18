@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import DashboardCalendar from "@/components/DashboardCalendar";
 
 export default function LandlordDashboard() {
   const [user, setUser] = useState(null);
@@ -271,20 +272,9 @@ export default function LandlordDashboard() {
                 </div>
               </Section>
 
-              {/* Rent overview */}
-              <Section title="Rent overview" actionLabel="Payment history →" actionTo="/properties">
-                {rentCharges.length === 0 ? (
-                  <EmptyMsg>No rent charges yet.</EmptyMsg>
-                ) : (
-                  <div className="flex flex-col divide-y divide-slate-50">
-                    {rentCharges.slice(0, 6).map(r => (
-                      <div key={r.id} className="flex justify-between items-center py-2 text-xs">
-                        <span className="text-slate-700">{r.notes || "Rent charge"} · {fmtDate(r.due_date)}</span>
-                        <RentBadge status={r.status} />
-                      </div>
-                    ))}
-                  </div>
-                )}
+              {/* Calendar view */}
+              <Section title="💰 Rent due calendar" actionLabel="Payment history →" actionTo="/properties">
+                <DashboardCalendar charges={rentCharges} tenancies={activeTenancies} maintenance={maintenanceItems} />
               </Section>
 
               {/* Expiring leases */}
