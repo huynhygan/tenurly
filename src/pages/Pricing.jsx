@@ -62,6 +62,11 @@ function FaqItem({ q, a }) {
 
 export default function Pricing() {
   React.useEffect(() => { document.title = 'Pricing — Tenurly'; }, []);
+  // Page-specific meta description
+  React.useEffect(() => {
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Simple, transparent pricing for self-managed landlords. Start free with 1 property — scale up as your portfolio grows. Tenants are always free.');
+  }, []);
   return (
     <div className="min-h-screen font-jakarta">
 

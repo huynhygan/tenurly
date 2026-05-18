@@ -5,6 +5,10 @@ import { base44 } from "@/api/base44Client";
 export default function Onboarding() {
   const navigate = useNavigate();
   useEffect(() => { document.title = 'Get started — Tenurly'; }, []);
+  useEffect(() => {
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Set up your Tenurly account. Are you a landlord or a tenant? Choose your role to get started.');
+  }, []);
   const [selected, setSelected] = useState(null);
   const [tenantExpanded, setTenantExpanded] = useState(false);
   const [saving, setSaving] = useState(false);

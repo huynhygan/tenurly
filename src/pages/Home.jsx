@@ -484,6 +484,8 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   React.useEffect(() => {
     document.title = 'Tenurly — Self-Managed Property, Sorted';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Track rent, handle maintenance, and stay connected with tenants — without a property manager. Free for your first property, forever.');
     base44.auth.isAuthenticated().then(setIsLoggedIn);
   }, []);
 
