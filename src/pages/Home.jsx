@@ -494,6 +494,34 @@ export default function Home() {
     base44.auth.isAuthenticated().then(setIsLoggedIn);
   }, []);
 
+  // If logged in and has a role, show option to go to dashboard
+  if (isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/40 flex flex-col items-center justify-center px-4">
+        <div className="max-w-md text-center">
+          <div className="flex items-center gap-2 justify-center mb-6">
+            <div className="w-9 h-9 rounded-xl bg-[#0f1f3d] flex items-center justify-center">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <rect x="1" y="6" width="16" height="11" rx="1.5" stroke="white" strokeWidth="1.5"/>
+                <path d="M5 6V4.5a4 4 0 0 1 8 0V6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx="9" cy="11.5" r="1.5" fill="white"/>
+              </svg>
+            </div>
+            <span className="text-xl font-bold text-[#0f1f3d]" style={{ fontFamily: 'serif' }}>Tenurly</span>
+          </div>
+          <h1 className="text-2xl font-bold text-[#0f1f3d] mb-3">Welcome back!</h1>
+          <p className="text-slate-600 mb-8">Go to your dashboard to manage your properties and tenancies.</p>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center justify-center gap-2 bg-[#0f1f3d] text-white text-base font-semibold px-8 py-3.5 rounded-xl hover:bg-[#1a3460] transition-colors"
+          >
+            Go to Dashboard <ArrowRight size={18} />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <link
