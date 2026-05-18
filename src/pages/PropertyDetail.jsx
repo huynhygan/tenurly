@@ -126,7 +126,7 @@ export default function PropertyDetail() {
         {/* Quick links */}
         <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
           <Link to={`/properties/${id}/rent-ledger`}>
-            <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><DollarSign className="w-3.5 h-3.5" />Rent Ledger</Button>
+            <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><DollarSign className="w-3.5 h-3.5" />Payment history</Button>
           </Link>
           <Link to={`/properties/${id}/expenses`}>
             <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><FileText className="w-3.5 h-3.5" />Expenses</Button>
@@ -223,7 +223,7 @@ export default function PropertyDetail() {
         {/* 3. Household Chat button */}
         <Link to={`/household-chat/${id}`} className="block">
           <Button variant="outline" className="w-full gap-2">
-            <MessageCircle className="w-4 h-4" /> Household Chat
+            <MessageCircle className="w-4 h-4" /> House chat
           </Button>
         </Link>
 

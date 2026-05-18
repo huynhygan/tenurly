@@ -203,7 +203,7 @@ export default function RoomDetail() {
 
             <div className="grid grid-cols-2 gap-2">
               <Link to={`/properties/${room?.property_id}/rent-ledger`}>
-                <Button variant="outline" className="w-full gap-1"><DollarSign className="w-4 h-4" />Rent Ledger</Button>
+                <Button variant="outline" className="w-full gap-1"><DollarSign className="w-4 h-4" />Payment history</Button>
               </Link>
               <Button variant="outline" className="w-full gap-1" onClick={() => setLeaseOpen(true)}>
                 <Upload className="w-4 h-4" />Lease Agreement

@@ -57,7 +57,7 @@ export default function ChatView() {
 
   return (
     <div className="flex flex-col h-screen max-w-lg mx-auto">
-      <PageHeader title={chat?.name || 'Chat'} back />
+      <PageHeader title={chat?.name || 'Messages'} back />
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3">
         {sorted.map(msg => {
           const isMe = msg.sender_id === user?.id;
