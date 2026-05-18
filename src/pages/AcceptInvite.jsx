@@ -79,6 +79,7 @@ export default function AcceptInvite() {
 
   const code = new URLSearchParams(window.location.search).get('code');
 
+  useEffect(() => { document.title = "You've been invited — Tenurly"; }, []);
   useEffect(() => {
     if (!code) { setStatus('error'); return; }
     if (isLoadingAuth) return;
@@ -212,7 +213,7 @@ export default function AcceptInvite() {
               Your tenancy has been activated. You can now view your rent, submit repairs, and access your documents.
             </p>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="w-full h-12 bg-[#0d9e7e] hover:bg-[#0b8a6e] text-white font-semibold rounded-2xl flex items-center justify-center gap-2 transition-colors text-sm"
             >
               Go to my dashboard <ArrowRight size={16} />
@@ -236,7 +237,7 @@ export default function AcceptInvite() {
             <h1 className="text-xl font-bold text-[#0f1f3d]">Invite declined</h1>
             <p className="text-sm text-slate-500">You've declined this tenancy invite. Contact your landlord if you change your mind.</p>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="text-sm font-semibold text-[#0d9e7e] hover:underline"
             >
               Back to home →

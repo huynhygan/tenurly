@@ -17,7 +17,7 @@ export default function Onboarding() {
     } catch (e) {
       // non-blocking
     }
-    navigate("/");
+    navigate("/dashboard");
   }
 
   return (
@@ -139,7 +139,7 @@ export default function Onboarding() {
 
       <p style={{ marginTop: "1.5rem", fontSize: "0.85rem", color: "#64748b", textAlign: "center" }}>
         Already have an account?{" "}
-        <a href="/" style={{ color: "#0d9e7e", textDecoration: "none", fontWeight: 500 }}>Go to my dashboard</a>
+        <a href="/dashboard" style={{ color: "#0d9e7e", textDecoration: "none", fontWeight: 500 }}>Go to my dashboard</a>
       </p>
     </div>
   );

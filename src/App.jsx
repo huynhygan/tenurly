@@ -69,11 +69,12 @@ const AuthenticatedApp = () => {
       </div>
     }>
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/accept-invite" element={<AcceptInvite />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route element={<RoleLayout />}>
-        <Route path="/" element={<RoleRouter />} />
+        <Route path="/dashboard" element={<RoleRouter />} />
         <Route path="/properties" element={<Properties />} />
         <Route path="/properties/:id" element={<PropertyDetail />} />
         <Route path="/rooms/:id" element={<RoomDetail />} />

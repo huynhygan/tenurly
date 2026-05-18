@@ -4,7 +4,7 @@ import { Home, BedDouble, CreditCard, Wrench, MoreHorizontal, MessageCircle, Use
 import { useTabHistory } from '@/lib/TabHistoryContext';
 
 const landlordTabs = [
-  { root: '/',             label: 'Overview',  icon: Home },
+  { root: '/dashboard',    label: 'Overview',  icon: Home },
   { root: '/properties',  label: 'Properties', icon: BedDouble },
   { root: '/messages',    label: 'Messages',   icon: MessageCircle },
   { root: '/maintenance', label: 'Maintenance',icon: Wrench },
@@ -12,7 +12,7 @@ const landlordTabs = [
 ];
 
 const tenantTabs = [
-  { root: '/',           label: 'Home',      icon: Home },
+  { root: '/dashboard',  label: 'Home',      icon: Home },
   { root: '/rent',       label: 'My rent',   icon: CreditCard },
   { root: '/repairs',    label: 'Repairs',   icon: Wrench },
   { root: '/documents',  label: 'Documents', icon: FileText },
@@ -27,7 +27,7 @@ export default function BottomNav({ mode }) {
 
   const handleTabPress = (root) => {
     const currentPath = location.pathname;
-    const isActive = root === '/' ? currentPath === '/' : currentPath.startsWith(root);
+    const isActive = root === '/dashboard' ? currentPath === '/dashboard' : currentPath.startsWith(root);
     if (isActive) {
       resetTab(root);
       navigate(root);
@@ -44,7 +44,7 @@ export default function BottomNav({ mode }) {
     >
       <div className="flex items-center justify-around max-w-lg mx-auto h-[60px] px-2">
         {tabs.map(({ root, icon: Icon, label }) => {
-          const isActive = root === '/' ? location.pathname === '/' : location.pathname.startsWith(root);
+          const isActive = root === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(root);
           return (
             <button
               key={root}

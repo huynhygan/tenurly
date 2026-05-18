@@ -223,7 +223,7 @@ export default function TenantDashboard() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 safe-bottom">
         <div className="max-w-[600px] mx-auto flex">
           {[
-            { icon: "🏠", label: "Home",      to: "/",          active: true },
+            { icon: "🏠", label: "Home",      to: "/dashboard", active: true },
             { icon: "💰", label: "My rent",   to: "/rent" },
             { icon: "🔧", label: "Repairs",   to: "/repairs" },
             { icon: "📄", label: "Documents", to: "/documents" },

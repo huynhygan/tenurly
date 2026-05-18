@@ -7,11 +7,11 @@ import PageTransition from './PageTransition';
 import { useTabHistory } from '@/lib/TabHistoryContext';
 import { RouteGuard } from '@/lib/roleGuard';
 
-const TAB_ROOTS = ['/', '/properties', '/messages', '/notifications', '/settings', '/maintenance', '/rent', '/repairs', '/documents'];
+const TAB_ROOTS = ['/dashboard', '/properties', '/messages', '/notifications', '/settings', '/maintenance', '/rent', '/repairs', '/documents'];
 
 function getTabRoot(path) {
   return TAB_ROOTS
-    .filter(r => r === '/' ? path === '/' : path.startsWith(r))
+    .filter(r => r === '/dashboard' ? path === '/dashboard' : path.startsWith(r))
     .sort((a, b) => b.length - a.length)[0] || null;
 }
 
