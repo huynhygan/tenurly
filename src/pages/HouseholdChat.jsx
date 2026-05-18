@@ -6,8 +6,9 @@ import { useAuth } from '@/lib/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 export default function HouseholdChat() {
-  const { propertyId } = useParams();
-  const { user } = useAuth();
+   React.useEffect(() => { document.title = 'House chat — Tenurly'; }, []);
+   const { propertyId } = useParams();
+   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 

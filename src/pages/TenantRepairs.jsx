@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
@@ -158,8 +158,9 @@ function NewRequestForm({ onSubmit, onClose, isPending }) {
 const BLANK = { title: '', description: '', priority: 'medium', photo_urls: [] };
 
 export default function TenantRepairs() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+   React.useEffect(() => { document.title = 'Repairs — Tenurly'; }, []);
+   const { user } = useAuth();
+   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 

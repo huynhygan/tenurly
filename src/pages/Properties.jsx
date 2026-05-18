@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
@@ -15,8 +15,9 @@ import PropertyPerformanceSheet from '@/components/PropertyPerformanceSheet';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
 export default function Properties() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+   React.useEffect(() => { document.title = 'Properties — Tenurly'; }, []);
+   const { user } = useAuth();
+   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: '', address: '', city: '', state: '', postcode: '', type: 'house' });
   const [performanceProperty, setPerformanceProperty] = useState(null);

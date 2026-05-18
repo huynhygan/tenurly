@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
@@ -16,8 +16,9 @@ import FileUploader from '@/components/FileUploader';
 import { format } from 'date-fns';
 
 export default function Documents() {
-  const { propertyId } = useParams();
-  const { user, currentMode } = useAuth();
+   React.useEffect(() => { document.title = 'Documents — Tenurly'; }, []);
+   const { propertyId } = useParams();
+   const { user, currentMode } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'other', file_url: '' });

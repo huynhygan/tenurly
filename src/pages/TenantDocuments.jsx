@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ExternalLink, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -9,7 +9,8 @@ import PageHeader from '@/components/PageHeader';
 import { normalizeDocument, prettyDate } from '@/lib/propertyApp';
 
 export default function TenantDocuments() {
-  const { user } = useAuth();
+   React.useEffect(() => { document.title = 'Documents — Tenurly'; }, []);
+   const { user } = useAuth();
   const { data: tenancies = [] } = useQuery({ queryKey: ['tenant-docs-tenancies', user?.id], queryFn: () => base44.entities.Tenancy.filter({ tenant_id: user?.id }), enabled: !!user?.id });
   const activeTenancy = tenancies.find(t => t.status === 'active') || tenancies[0];
 

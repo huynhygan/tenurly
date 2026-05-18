@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import usePullToRefresh from '@/hooks/usePullToRefresh';
@@ -10,8 +10,9 @@ import PageHeader from '@/components/PageHeader';
 import { normalizeChat, prettyDate } from '@/lib/propertyApp';
 
 export default function Messages() {
-  const { user } = useAuth();
-  const { data: chatsRaw = [], refetch } = useQuery({ queryKey: ['messages'], queryFn: () => base44.entities.Chat.list('-last_message_at') });
+   React.useEffect(() => { document.title = 'Messages — Tenurly'; }, []);
+   const { user } = useAuth();
+   const { data: chatsRaw = [], refetch } = useQuery({ queryKey: ['messages'], queryFn: () => base44.entities.Chat.list('-last_message_at') });
   const chats = chatsRaw.map(normalizeChat).filter(c => c.participant_ids?.includes(user?.id));
 
   const onRefresh = useCallback(() => refetch(), [refetch]);

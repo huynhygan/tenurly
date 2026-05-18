@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
@@ -10,8 +10,9 @@ import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
 
 export default function MaintenanceDetail() {
-  const { id } = useParams();
-  const { currentMode } = useAuth();
+   React.useEffect(() => { document.title = 'Maintenance job — Tenurly'; }, []);
+   const { id } = useParams();
+   const { currentMode } = useAuth();
   const queryClient = useQueryClient();
   const isLandlord = currentMode === 'landlord';
 

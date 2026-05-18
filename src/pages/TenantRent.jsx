@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -71,9 +71,10 @@ export default function TenantRent() {
     return 'bg-amber-50';
   };
 
+  React.useEffect(() => { document.title = 'My rent — Tenurly'; }, []);
   return (
-    <div className="pb-6">
-      <PageHeader title="My rent" subtitle="Track and submit your rent payments" back />
+     <div className="pb-6">
+       <PageHeader title="My rent" subtitle="Track and submit your rent payments" back />
 
       <div className="px-5 space-y-3">
         {charges.length === 0 && (

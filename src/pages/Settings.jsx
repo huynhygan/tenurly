@@ -10,8 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 
 export default function Settings() {
-  const { user, currentMode, switchMode } = useAuth();
-  const navigate = useNavigate();
+   React.useEffect(() => { document.title = 'Settings — Tenurly'; }, []);
+   const { user, currentMode, switchMode } = useAuth();
+   const navigate = useNavigate();
   const [phone, setPhone] = useState('');
   const [saving, setSaving] = useState(false);
   const [switching, setSwitching] = useState(false);

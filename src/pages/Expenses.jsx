@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
@@ -21,8 +21,9 @@ const CATEGORY_OPTIONS = CATEGORIES.map(c => ({ value: c, label: c.charAt(0).toU
 const BLANK = { category: 'other', amount: '', date: '', description: '', receipt_url: '' };
 
 export default function Expenses() {
-  const { propertyId } = useParams();
-  const { user } = useAuth();
+   React.useEffect(() => { document.title = 'Finances — Tenurly'; }, []);
+   const { propertyId } = useParams();
+   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(BLANK);

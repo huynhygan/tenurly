@@ -10,8 +10,9 @@ import PageHeader from '@/components/PageHeader';
 import { format } from 'date-fns';
 
 export default function ChatView() {
-  const { chatId } = useParams();
-  const { user } = useAuth();
+   React.useEffect(() => { document.title = 'Messages — Tenurly'; }, []);
+   const { chatId } = useParams();
+   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [text, setText] = useState('');
   const bottomRef = useRef();

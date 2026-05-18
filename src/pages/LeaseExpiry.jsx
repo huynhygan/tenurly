@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
@@ -10,7 +10,8 @@ import EmptyState from '@/components/EmptyState';
 import { differenceInDays, parseISO } from 'date-fns';
 
 export default function LeaseExpiry() {
-  const { user } = useAuth();
+   React.useEffect(() => { document.title = 'Lease renewals — Tenurly'; }, []);
+   const { user } = useAuth();
 
   const { data: tenancies = [] } = useQuery({
     queryKey: ['tenancies'],

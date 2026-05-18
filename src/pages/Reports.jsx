@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -40,8 +40,9 @@ function ChartCard({ title, children }) {
 }
 
 export default function Reports() {
-  const { user } = useAuth();
-  const reportRef = useRef(null);
+   React.useEffect(() => { document.title = 'Reports & tax — Tenurly'; }, []);
+   const { user } = useAuth();
+   const reportRef = useRef(null);
 
   const { data: tenanciesRaw = [] } = useQuery({
     queryKey: ['report-tenancies', user?.id],

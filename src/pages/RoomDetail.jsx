@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link, useNavigate } from 'react-router-dom';
@@ -22,8 +22,9 @@ const BLANK_TENANT = {
 };
 
 export default function RoomDetail() {
-  const { id } = useParams();
-  const { user } = useAuth();
+   React.useEffect(() => { document.title = 'Room — Tenurly'; }, []);
+   const { id } = useParams();
+   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
