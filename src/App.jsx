@@ -46,22 +46,8 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Show landing page instead of hard redirect for unauthenticated visitors
-      return (
-        <React.Suspense fallback={null}>
-          <Routes>
-            <Route path="/accept-invite" element={<AcceptInvite />} />
-            <Route path="*" element={<Landing />} />
-          </Routes>
-        </React.Suspense>
-      );
-    }
-  }
-
+  // Always show landing page at "/" for everyone (authenticated or not)
+  // Authenticated users can navigate from there to their dashboard
   return (
     <React.Suspense fallback={
       <div className="fixed inset-0 flex items-center justify-center">
