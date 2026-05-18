@@ -12,7 +12,11 @@ import usePullToRefresh from '@/hooks/usePullToRefresh';
 
 export default function MaintenanceRequests() {
   const { user, currentMode } = useAuth();
-  useEffect(() => { document.title = 'Maintenance — Tenurly'; }, []);
+  useEffect(() => { 
+    document.title = 'Maintenance — Tenurly';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Track and manage maintenance requests across all your properties. Every job logged, every status visible.');
+  }, []);
   const isLandlord = currentMode === 'landlord';
 
   const { data: requests = [], refetch } = useQuery({

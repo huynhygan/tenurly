@@ -6,12 +6,8 @@ export default function LandlordDashboard() {
   const [user, setUser] = useState(null);
   
   useEffect(() => {
-    import('@/lib/setPageMeta').then(({ setPageMeta }) => {
-      setPageMeta(
-        'Dashboard — Tenurly',
-        'Your Tenurly landlord dashboard. See rent status, open maintenance jobs, lease renewals, and property overview at a glance.'
-      );
-    });
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Your Tenurly landlord dashboard. See rent status, open maintenance jobs, lease renewals, and property overview at a glance.');
   }, []);
   const [properties, setProperties] = useState([]);
   const [tenancies, setTenancies] = useState([]);

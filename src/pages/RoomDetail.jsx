@@ -22,7 +22,11 @@ const BLANK_TENANT = {
 };
 
 export default function RoomDetail() {
-   React.useEffect(() => { document.title = 'Room — Tenurly'; }, []);
+   React.useEffect(() => { 
+    document.title = 'Room — Tenurly';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Tenurly — smart property management for self-managed landlords and their tenants.');
+  }, []);
    const { id } = useParams();
    const { user } = useAuth();
   const queryClient = useQueryClient();

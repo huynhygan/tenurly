@@ -485,7 +485,7 @@ export default function Home() {
   React.useEffect(() => {
     document.title = 'Tenurly — Self-Managed Property, Sorted';
     const el = document.querySelector('meta[name="description"]');
-    if (el) el.setAttribute('content', 'Track rent, handle maintenance, and stay connected with tenants — without a property manager. Free for your first property, forever.');
+    if (el) el.setAttribute('content', 'Tenurly — smart, simple property management for self-managed landlords. Track rent, handle maintenance, and stay connected with tenants. Free to start.');
     base44.auth.isAuthenticated().then(setIsLoggedIn);
   }, []);
 

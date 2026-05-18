@@ -21,7 +21,11 @@ const CATEGORY_OPTIONS = CATEGORIES.map(c => ({ value: c, label: c.charAt(0).toU
 const BLANK = { category: 'other', amount: '', date: '', description: '', receipt_url: '' };
 
 export default function Expenses() {
-   React.useEffect(() => { document.title = 'Finances — Tenurly'; }, []);
+   React.useEffect(() => { 
+    document.title = 'Finances — Tenurly';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Tenurly — smart property management for self-managed landlords and their tenants.');
+  }, []);
    const { propertyId } = useParams();
    const { user } = useAuth();
   const queryClient = useQueryClient();

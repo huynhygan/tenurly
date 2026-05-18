@@ -7,7 +7,7 @@ export default function Onboarding() {
   useEffect(() => { document.title = 'Get started — Tenurly'; }, []);
   useEffect(() => {
     const el = document.querySelector('meta[name="description"]');
-    if (el) el.setAttribute('content', 'Set up your Tenurly account. Are you a landlord or a tenant? Choose your role to get started.');
+    if (el) el.setAttribute('content', 'Get started with Tenurly in minutes. Add your first property, invite your tenant, and start tracking rent today.');
   }, []);
   const [selected, setSelected] = useState(null);
   const [tenantExpanded, setTenantExpanded] = useState(false);

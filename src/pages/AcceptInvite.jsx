@@ -79,7 +79,11 @@ export default function AcceptInvite() {
 
   const code = new URLSearchParams(window.location.search).get('code');
 
-  useEffect(() => { document.title = "You've been invited — Tenurly"; }, []);
+  useEffect(() => { 
+    document.title = "You've been invited — Tenurly";
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Your landlord has invited you to Tenurly. Create your free account to view your rent, submit repairs, and access your lease documents.');
+  }, []);
   useEffect(() => {
     if (!code) { setStatus('error'); return; }
     if (isLoadingAuth) return;

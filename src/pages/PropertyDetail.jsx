@@ -26,7 +26,11 @@ function SummaryTile({ icon: Icon, label, value, color = 'text-primary', bg = 'b
 }
 
 export default function PropertyDetail() {
-   React.useEffect(() => { document.title = 'Property — Tenurly'; }, []);
+   React.useEffect(() => { 
+    document.title = 'Property — Tenurly';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Tenurly — smart property management for self-managed landlords and their tenants.');
+  }, []);
    const { id } = useParams();
    const { user } = useAuth();
   const queryClient = useQueryClient();

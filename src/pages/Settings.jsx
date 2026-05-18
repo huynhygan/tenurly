@@ -10,7 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 
 export default function Settings() {
-   React.useEffect(() => { document.title = 'Settings — Tenurly'; }, []);
+   React.useEffect(() => { 
+    document.title = 'Settings — Tenurly';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Tenurly — smart property management for self-managed landlords and their tenants.');
+  }, []);
    const { user, currentMode, switchMode } = useAuth();
    const navigate = useNavigate();
   const [phone, setPhone] = useState('');

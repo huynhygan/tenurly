@@ -6,12 +6,8 @@ export default function TenantDashboard() {
   const [user, setUser] = useState(null);
   
   useEffect(() => {
-    import('@/lib/setPageMeta').then(({ setPageMeta }) => {
-      setPageMeta(
-        'My home — Tenurly',
-        'Your Tenurly tenant dashboard. Check your rent, submit repairs, download documents, and message your landlord.'
-      );
-    });
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Your Tenurly tenant dashboard. Check your rent, submit repairs, download documents, and message your landlord.');
   }, []);
   const [tenancy, setTenancy] = useState(null);
   const [rentCharges, setRentCharges] = useState([]);

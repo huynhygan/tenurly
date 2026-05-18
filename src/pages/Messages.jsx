@@ -10,7 +10,11 @@ import PageHeader from '@/components/PageHeader';
 import { normalizeChat, prettyDate } from '@/lib/propertyApp';
 
 export default function Messages() {
-   React.useEffect(() => { document.title = 'Messages — Tenurly'; }, []);
+   React.useEffect(() => { 
+    document.title = 'Messages — Tenurly';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Tenurly — smart property management for self-managed landlords and their tenants.');
+  }, []);
    const { user } = useAuth();
    const { data: chatsRaw = [], refetch } = useQuery({ queryKey: ['messages'], queryFn: () => base44.entities.Chat.list('-last_message_at') });
   const chats = chatsRaw.map(normalizeChat).filter(c => c.participant_ids?.includes(user?.id));

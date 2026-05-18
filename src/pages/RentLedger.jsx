@@ -18,7 +18,11 @@ import { format } from 'date-fns';
 
 export default function RentLedger() {
   const { propertyId } = useParams();
-  useEffect(() => { document.title = 'Payment history — Tenurly'; }, []);
+  useEffect(() => { 
+    document.title = 'Payment history — Tenurly';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Full rent payment history and ledger across all your properties and tenants.');
+  }, []);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);

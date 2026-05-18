@@ -9,7 +9,11 @@ import PageHeader from '@/components/PageHeader';
 import { normalizeDocument, prettyDate } from '@/lib/propertyApp';
 
 export default function TenantDocuments() {
-   React.useEffect(() => { document.title = 'Documents — Tenurly'; }, []);
+   React.useEffect(() => { 
+    document.title = 'Documents — Tenurly';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Access your lease, inspection reports, and other important tenancy documents — anytime, from anywhere.');
+  }, []);
    const { user } = useAuth();
   const { data: tenancies = [] } = useQuery({ queryKey: ['tenant-docs-tenancies', user?.id], queryFn: () => base44.entities.Tenancy.filter({ tenant_id: user?.id }), enabled: !!user?.id });
   const activeTenancy = tenancies.find(t => t.status === 'active') || tenancies[0];

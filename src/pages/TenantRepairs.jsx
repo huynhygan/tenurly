@@ -158,7 +158,11 @@ function NewRequestForm({ onSubmit, onClose, isPending }) {
 const BLANK = { title: '', description: '', priority: 'medium', photo_urls: [] };
 
 export default function TenantRepairs() {
-   React.useEffect(() => { document.title = 'Repairs — Tenurly'; }, []);
+   React.useEffect(() => { 
+    document.title = 'Repairs — Tenurly';
+    const el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', 'Submit and track repair requests for your rental property. See real-time status updates from your landlord.');
+  }, []);
    const { user } = useAuth();
    const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
