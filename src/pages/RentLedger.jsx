@@ -147,16 +147,22 @@ export default function RentLedger() {
         {sorted.length === 0 && <EmptyState icon={DollarSign} title="No charges" description="Add rent charges to track payments" />}
         {sorted.map(c => {
           const tenancy = tenancies.find(t => t.id === c.tenancy_id);
+          const isOverdue = c.status === 'overdue';
           return (
-            <Card key={c.id} className="p-4">
+            <Card key={c.id} className={`p-4 ${isOverdue ? 'border-red-200 bg-red-50/30' : ''}`}>
               <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-medium text-sm">{tenancy?.tenant_name || tenancy?.tenant_email || 'Tenant'}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Due: {c.due_date}</p>
-                  {c.notes && <p className="text-xs text-muted-foreground mt-0.5">{c.notes}</p>}
-                  {weeksOverdue(c) !== null && weeksOverdue(c) > 0 && (
-                    <p className="text-xs font-semibold text-red-500 mt-0.5">{weeksOverdue(c)} week{weeksOverdue(c) !== 1 ? 's' : ''} overdue</p>
+                <div className="flex items-start gap-2">
+                  {isOverdue && (
+                    <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0" />
                   )}
+                  <div>
+                    <p className="font-medium text-sm">{tenancy?.tenant_name || tenancy?.tenant_email || 'Tenant'}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Due: {c.due_date}</p>
+                    {c.notes && <p className="text-xs text-muted-foreground mt-0.5">{c.notes}</p>}
+                    {weeksOverdue(c) !== null && weeksOverdue(c) > 0 && (
+                      <p className="text-xs font-semibold text-red-500 mt-0.5">{weeksOverdue(c)} week{weeksOverdue(c) !== 1 ? 's' : ''} overdue</p>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="font-bold">${c.amount}</p>
