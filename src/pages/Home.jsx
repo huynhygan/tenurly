@@ -113,13 +113,13 @@ function NavBar() {
         </nav>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => base44.auth.redirectToLogin('/dashboard')}
+            onClick={() => base44.auth.redirectToLogin('/onboarding')}
             className="hidden sm:block text-sm font-medium text-white/60 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10"
           >
             Sign in
           </button>
           <button
-            onClick={() => base44.auth.redirectToLogin('/dashboard')}
+            onClick={() => base44.auth.redirectToLogin('/onboarding')}
             className="text-sm font-semibold bg-[#0d9e7e] text-white px-4 py-2.5 rounded-xl hover:bg-[#0b8a6e] transition-colors"
           >
             Get started free
@@ -146,7 +146,7 @@ function HeroSection() {
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
           <button
-            onClick={() => base44.auth.redirectToLogin('/dashboard')}
+            onClick={() => base44.auth.redirectToLogin('/onboarding')}
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#0d9e7e] text-white text-base font-semibold px-7 py-4 rounded-2xl hover:bg-[#0b8a6e] transition-colors shadow-lg shadow-[#0d9e7e]/30"
             style={sansStyle}
           >
@@ -201,7 +201,7 @@ function TwoSidesSection() {
                 ))}
               </ul>
               <button
-                onClick={() => base44.auth.redirectToLogin('/dashboard')}
+                onClick={() => base44.auth.redirectToLogin('/onboarding')}
                 className="w-full py-3 rounded-xl bg-[#0f1f3d] text-white text-sm font-semibold hover:bg-[#1a3460] transition-colors"
                 style={sansStyle}
               >
@@ -355,7 +355,7 @@ function PricingSection() {
                 ))}
               </ul>
               <button
-                onClick={() => base44.auth.redirectToLogin('/dashboard')}
+                onClick={() => base44.auth.redirectToLogin('/onboarding')}
                 className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${
                   plan.featured
                     ? 'bg-[#0d9e7e] text-white hover:bg-[#0b8a6e]'
@@ -433,7 +433,7 @@ function FinalCTASection() {
           Join landlords who&apos;ve ditched the spreadsheets and the agent fees. Your first property is free, forever.
         </p>
         <button
-          onClick={() => base44.auth.redirectToLogin('/dashboard')}
+          onClick={() => base44.auth.redirectToLogin('/onboarding')}
           className="inline-flex items-center justify-center gap-2 bg-[#0d9e7e] text-white text-base font-semibold px-8 py-4 rounded-2xl hover:bg-[#0b8a6e] transition-colors shadow-lg shadow-[#0d9e7e]/30 mb-8"
           style={sansStyle}
         >
@@ -465,7 +465,7 @@ function Footer() {
           </div>
           <nav className="flex flex-wrap gap-6 text-sm text-white/40" style={sansStyle}>
             <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white transition-colors">Pricing</button>
-            <button onClick={() => base44.auth.redirectToLogin('/')} className="hover:text-white transition-colors">Dashboard</button>
+            <button onClick={() => base44.auth.redirectToLogin('/onboarding')} className="hover:text-white transition-colors">Dashboard</button>
             <Link to="/accept-invite" className="hover:text-white transition-colors">Tenant access</Link>
             <button onClick={() => base44.auth.redirectToLogin('/settings')} className="hover:text-white transition-colors">Settings</button>
           </nav>
