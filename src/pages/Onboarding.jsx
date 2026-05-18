@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  useEffect(() => { document.title = 'Get started — Tenurly'; }, []);
   const [selected, setSelected] = useState(null);
   const [tenantExpanded, setTenantExpanded] = useState(false);
   const [saving, setSaving] = useState(false);

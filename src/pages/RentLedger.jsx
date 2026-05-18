@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 
 export default function RentLedger() {
   const { propertyId } = useParams();
+  useEffect(() => { document.title = 'Payment history — Tenurly'; }, []);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);

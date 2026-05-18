@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
@@ -12,6 +12,7 @@ import usePullToRefresh from '@/hooks/usePullToRefresh';
 
 export default function MaintenanceRequests() {
   const { user, currentMode } = useAuth();
+  useEffect(() => { document.title = 'Maintenance — Tenurly'; }, []);
   const isLandlord = currentMode === 'landlord';
 
   const { data: requests = [], refetch } = useQuery({

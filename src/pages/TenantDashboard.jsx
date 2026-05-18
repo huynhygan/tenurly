@@ -4,6 +4,10 @@ import { base44 } from "@/api/base44Client";
 
 export default function TenantDashboard() {
   const [user, setUser] = useState(null);
+  
+  useEffect(() => {
+    document.title = 'My home — Tenurly';
+  }, []);
   const [tenancy, setTenancy] = useState(null);
   const [rentCharges, setRentCharges] = useState([]);
   const [maintenanceItems, setMaintenanceItems] = useState([]);

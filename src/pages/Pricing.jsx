@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -61,6 +61,7 @@ function FaqItem({ q, a }) {
 }
 
 export default function Pricing() {
+  React.useEffect(() => { document.title = 'Pricing — Tenurly'; }, []);
   return (
     <div className="min-h-screen font-jakarta">
 

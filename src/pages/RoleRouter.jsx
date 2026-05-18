@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
@@ -8,6 +8,7 @@ import TenantDashboard from './TenantDashboard';
 
 export default function RoleRouter() {
   const { user } = useAuth();
+  useEffect(() => { document.title = 'Get started — Tenurly'; }, []);
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
   const [showTenantInfo, setShowTenantInfo] = useState(false);
