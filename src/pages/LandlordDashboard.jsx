@@ -122,12 +122,11 @@ export default function LandlordDashboard() {
           </span>
           <nav style={{ display: "flex", gap: "0.25rem" }}>
             {[
-              { label: "Overview", to: "/LandlordDashboard", active: true },
+              { label: "Overview", to: "/", active: true },
               { label: "Properties", to: "/properties" },
               { label: "Maintenance", to: "/maintenance" },
-              { label: "Finances", to: "/Expenses" },
+              { label: "Finances", to: "/properties" },
               { label: "Messages", to: "/messages" },
-              { label: "Documents", to: "/Documents" },
             ].map(link => (
               <Link
                 key={link.label}
@@ -221,7 +220,7 @@ export default function LandlordDashboard() {
             type="error"
             icon="⚠️"
             message={`${overdueRent} rent payment${overdueRent > 1 ? "s are" : " is"} overdue.`}
-            action={{ label: "View rent ledger →", to: "/RentLedger" }}
+            action={{ label: "View payment history →", to: "/properties" }}
           />
         )}
         {expiringLeases.length > 0 && (
@@ -369,9 +368,9 @@ export default function LandlordDashboard() {
                   {[
                     { icon: "➕", label: "Add property", to: "/properties" },
                     { icon: "✉️", label: "Invite tenant", to: "/properties" },
-                    { icon: "📄", label: "Upload document", to: "/Documents" },
-                    { icon: "📊", label: "Financial report", to: "/reports" },
-                    { icon: "💸", label: "Log an expense", to: "/Expenses" },
+                    { icon: "📄", label: "Upload document", to: "/properties" },
+                    { icon: "📊", label: "Reports & tax", to: "/reports" },
+                    { icon: "💸", label: "Log an expense", to: "/properties" },
                     { icon: "📅", label: "Lease renewals", to: "/lease-expiry" },
                   ].map(a => (
                     <Link key={a.label} to={a.to} style={{ textDecoration: "none" }}>
@@ -401,7 +400,7 @@ export default function LandlordDashboard() {
               </Section>
 
               {/* Rent summary */}
-              <Section title="Rent overview" action={{ label: "Full ledger →", to: "/RentLedger" }}>
+              <Section title="Rent overview" action={{ label: "Payment history →", to: "/properties" }}>
                 {rentCharges.length === 0 ? (
                   <EmptyState icon="💰" message="No rent charges yet." cta={null} />
                 ) : (
@@ -545,7 +544,7 @@ function Section({ title, action, children }) {
 
 function PropertyRow({ property, tenancies, overdueCount }) {
   return (
-    <Link to={`/PropertyDetail?id=${property.id}`} style={{ textDecoration: "none" }}>
+    <Link to={`/properties/${property.id}`} style={{ textDecoration: "none" }}>
       <div style={{
         display: "flex",
         alignItems: "center",
@@ -609,7 +608,7 @@ function MaintenanceRow({ item }) {
   };
   const s = statusMap[item.status] || statusMap["open"];
   return (
-    <Link to={`/MaintenanceDetail?id=${item.id}`} style={{ textDecoration: "none" }}>
+    <Link to={`/maintenance/${item.id}`} style={{ textDecoration: "none" }}>
       <div style={{
         display: "flex",
         alignItems: "center",

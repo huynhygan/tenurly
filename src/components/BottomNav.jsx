@@ -4,19 +4,19 @@ import { Home, BedDouble, CreditCard, Wrench, MoreHorizontal, MessageCircle, Use
 import { useTabHistory } from '@/lib/TabHistoryContext';
 
 const landlordTabs = [
-  { root: '/',             label: 'Home',    icon: Home },
-  { root: '/properties',  label: 'Rooms',   icon: BedDouble },
-  { root: '/messages',    label: 'Messages',icon: MessageCircle },
-  { root: '/maintenance', label: 'Repairs', icon: Wrench },
-  { root: '/settings',    label: 'More',    icon: MoreHorizontal },
+  { root: '/',             label: 'Overview',  icon: Home },
+  { root: '/properties',  label: 'Properties', icon: BedDouble },
+  { root: '/messages',    label: 'Messages',   icon: MessageCircle },
+  { root: '/maintenance', label: 'Maintenance',icon: Wrench },
+  { root: '/settings',    label: 'More',       icon: MoreHorizontal },
 ];
 
 const tenantTabs = [
-  { root: '/',           label: 'Home',    icon: Home },
-  { root: '/rent',       label: 'Rent',    icon: CreditCard },
-  { root: '/repairs',    label: 'Repairs', icon: Wrench },
-  { root: '/documents',  label: 'Docs',    icon: FileText },
-  { root: '/messages',   label: 'Chat',    icon: MessageCircle },
+  { root: '/',           label: 'Home',      icon: Home },
+  { root: '/rent',       label: 'My rent',   icon: CreditCard },
+  { root: '/repairs',    label: 'Repairs',   icon: Wrench },
+  { root: '/documents',  label: 'Documents', icon: FileText },
+  { root: '/messages',   label: 'Messages',  icon: MessageCircle },
 ];
 
 export default function BottomNav({ mode }) {

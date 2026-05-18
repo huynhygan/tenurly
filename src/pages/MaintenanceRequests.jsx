@@ -28,7 +28,7 @@ export default function MaintenanceRequests() {
 
   return (
     <div>
-      <PageHeader title={isLandlord ? "Maintenance Requests" : "My Repairs"} />
+      <PageHeader title={isLandlord ? "Maintenance" : "Repairs"} />
       {isRefreshing && <div className="text-center text-xs text-muted-foreground py-1">Refreshing…</div>}
       <div ref={containerRef} className="px-4 space-y-3 mt-2">
         {sorted.length === 0 && <EmptyState icon={Wrench} title="No requests" description="Maintenance requests will appear here" />}

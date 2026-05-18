@@ -152,7 +152,7 @@ export default function TenantDashboard() {
         padding: "0.5rem 0 0.75rem",
       }}>
         {[
-          { icon: "🏠", label: "Home", to: "/TenantDashboard", active: true },
+          { icon: "🏠", label: "Home", to: "/", active: true },
           { icon: "💰", label: "Rent", to: "/rent" },
           { icon: "🔧", label: "Repairs", to: "/repairs" },
           { icon: "📄", label: "Documents", to: "/documents" },

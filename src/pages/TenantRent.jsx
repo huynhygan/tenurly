@@ -73,7 +73,7 @@ export default function TenantRent() {
 
   return (
     <div className="pb-6">
-      <PageHeader title="Payments" subtitle="Track and submit your rent payments" back />
+      <PageHeader title="My rent" subtitle="Track and submit your rent payments" back />
 
       <div className="px-5 space-y-3">
         {charges.length === 0 && (

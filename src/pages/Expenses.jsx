@@ -64,7 +64,7 @@ export default function Expenses() {
   return (
     <div>
       <PageHeader
-        title="Expenses"
+        title="Finances"
         subtitle={`Total: $${total.toLocaleString()}`}
         back
         action={

@@ -33,7 +33,7 @@ export default function LeaseExpiry() {
 
   return (
     <div>
-      <PageHeader title="Lease Expiry Tracker" back />
+      <PageHeader title="Lease renewals" back />
       <div className="px-4 space-y-3 mt-2">
         {withExpiry.length === 0 && <EmptyState icon={CalendarClock} title="No active leases" description="Active leases with end dates will appear here" />}
         {withExpiry.map(t => (

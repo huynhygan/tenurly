@@ -7,7 +7,7 @@ import PageTransition from './PageTransition';
 import { useTabHistory } from '@/lib/TabHistoryContext';
 import { RouteGuard } from '@/lib/roleGuard';
 
-const TAB_ROOTS = ['/', '/properties', '/messages', '/notifications', '/settings', '/rent', '/repairs', '/documents'];
+const TAB_ROOTS = ['/', '/properties', '/messages', '/notifications', '/settings', '/maintenance', '/rent', '/repairs', '/documents'];
 
 function getTabRoot(path) {
   return TAB_ROOTS

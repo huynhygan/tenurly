@@ -128,7 +128,7 @@ export default function Reports() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `landlordly-tax-export-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.download = `tenurly-tax-export-${format(new Date(), 'yyyy-MM-dd')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -154,7 +154,7 @@ export default function Reports() {
   return (
     <div>
       <PageHeader
-        title="Reports & Tax Export"
+        title="Reports & tax"
         back
         action={
           <div className="flex gap-2">
