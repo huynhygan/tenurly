@@ -92,7 +92,7 @@ export default function TenantDashboard() {
         top: 0,
         zIndex: 50,
       }}>
-        <span style={{ fontWeight: 700, fontSize: "1.05rem", color: "#0f1f3d" }}>🏠 Landlordly</span>
+        <span style={{ fontWeight: 700, fontSize: "1.05rem", color: "#0f1f3d" }}>🏠 Tenurly</span>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
           <Link to="/notifications" style={{ position: "relative", textDecoration: "none" }}>
             <div style={{
@@ -438,7 +438,7 @@ export default function TenantDashboard() {
           <span>🔒</span>
           <span>
             <strong>Your data is private.</strong> Only you and your landlord can see your information.
-            Landlordly never shares your data with third parties, real estate agents, or advertisers.
+            Tenurly never shares your data with third parties, real estate agents, or advertisers.
           </span>
         </div>
       </main>

@@ -33,6 +33,7 @@ const TenantDocuments   = React.lazy(() => import('./pages/TenantDocuments'));
 const AcceptInvite      = React.lazy(() => import('./pages/AcceptInvite'));
 const Pricing           = React.lazy(() => import('./pages/Pricing'));
 const Reports           = React.lazy(() => import('./pages/Reports'));
+const Onboarding        = React.lazy(() => import('./pages/Onboarding'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -70,6 +71,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/accept-invite" element={<AcceptInvite />} />
       <Route path="/pricing" element={<Pricing />} />
+      <Route path="/onboarding" element={<Onboarding />} />
       <Route element={<RoleLayout />}>
         <Route path="/" element={<RoleRouter />} />
         <Route path="/properties" element={<Properties />} />

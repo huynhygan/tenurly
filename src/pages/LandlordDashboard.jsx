@@ -118,7 +118,7 @@ export default function LandlordDashboard() {
             color: "#0f1f3d",
             letterSpacing: "-0.01em",
           }}>
-            🏠 Landlordly
+            🏠 Tenurly
           </span>
           <nav style={{ display: "flex", gap: "0.25rem" }}>
             {[
