@@ -79,7 +79,7 @@ export default function TenantDashboard() {
       </header>
 
       {/* ─── MAIN ─── */}
-      <main className="max-w-[600px] mx-auto px-5 pt-5 pb-24">
+      <main className="max-w-[600px] mx-auto px-5 pt-5 pb-6">
 
         {/* Greeting */}
         <div className="mb-4">
@@ -219,25 +219,7 @@ export default function TenantDashboard() {
         </div>
       </main>
 
-      {/* ─── BOTTOM TAB BAR ─── */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 safe-bottom">
-        <div className="max-w-[600px] mx-auto flex">
-          {[
-            { icon: "🏠", label: "Home",      to: "/dashboard", active: true },
-            { icon: "💰", label: "My rent",   to: "/rent" },
-            { icon: "🔧", label: "Repairs",   to: "/repairs" },
-            { icon: "📄", label: "Documents", to: "/documents" },
-            { icon: "💬", label: "Messages",  to: "/messages" },
-          ].map(tab => (
-            <Link key={tab.label} to={tab.to} className="flex-1 flex flex-col items-center py-2.5 gap-0.5 transition-colors">
-              <span className="text-xl leading-none">{tab.icon}</span>
-              <span className={`text-[10px] font-semibold ${tab.active ? "text-[#0d9e7e]" : "text-slate-400"}`}>
-                {tab.label}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </nav>
+
     </div>
   );
 }

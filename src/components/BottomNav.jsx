@@ -4,16 +4,16 @@ import { Home, BedDouble, CreditCard, Wrench, MoreHorizontal, MessageCircle, Use
 import { useTabHistory } from '@/lib/TabHistoryContext';
 
 const landlordTabs = [
-  { root: '/dashboard',    label: 'Overview',  icon: Home },
-  { root: '/properties',  label: 'Properties', icon: BedDouble },
-  { root: '/messages',    label: 'Messages',   icon: MessageCircle },
-  { root: '/maintenance', label: 'Maintenance',icon: Wrench },
-  { root: '/settings',    label: 'More',       icon: MoreHorizontal },
+  { root: '/dashboard',    label: 'Overview',    icon: Home },
+  { root: '/properties',   label: 'Properties',  icon: BedDouble },
+  { root: '/maintenance',  label: 'Maintenance', icon: Wrench },
+  { root: '/messages',     label: 'Messages',    icon: MessageCircle },
+  { root: '/settings',     label: 'Settings',    icon: MoreHorizontal },
 ];
 
 const tenantTabs = [
   { root: '/dashboard',  label: 'Home',      icon: Home },
-  { root: '/rent',       label: 'My rent',   icon: CreditCard },
+  { root: '/rent',       label: 'Rent',      icon: CreditCard },
   { root: '/repairs',    label: 'Repairs',   icon: Wrench },
   { root: '/documents',  label: 'Documents', icon: FileText },
   { root: '/messages',   label: 'Messages',  icon: MessageCircle },
