@@ -31,7 +31,7 @@ export default function Home() {
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
             <HomeIcon size={16} className="text-white" />
           </div>
-          <span className="font-bold text-lg text-foreground">Landlordly</span>
+          <span className="font-bold text-lg text-foreground">Tenurly</span>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -76,7 +76,7 @@ export default function Home() {
         <div className="max-w-sm mx-auto bg-white rounded-3xl border-2 border-border/50 shadow-2xl overflow-hidden">
           <div className="bg-background px-5 pt-6 pb-4">
             <p className="text-xs text-muted-foreground">Good morning</p>
-            <p className="text-xl font-bold text-foreground">Landlordly</p>
+            <p className="text-xl font-bold text-foreground">Tenurly</p>
           </div>
           <div className="grid grid-cols-2 gap-2 px-5 pb-4">
             {[
@@ -187,14 +187,14 @@ export default function Home() {
           <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center">
             <HomeIcon size={12} className="text-white" />
           </div>
-          <span className="font-bold text-foreground">Landlordly</span>
+          <span className="font-bold text-foreground">Tenurly</span>
         </div>
         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mb-2">
           <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
           <span>·</span>
           <button onClick={() => base44.auth.redirectToLogin('/')} className="hover:text-foreground transition-colors">Sign in</button>
         </div>
-        <p className="text-xs text-muted-foreground">© 2026 Landlordly. Built for Australian self-managed landlords.</p>
+        <p className="text-xs text-muted-foreground">© 2026 Tenurly. Built for Australian self-managed landlords.</p>
       </footer>
     </div>
   );

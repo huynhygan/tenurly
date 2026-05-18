@@ -41,7 +41,7 @@ export default function RoleRouter() {
             <circle cx="9" cy="11.5" r="1.5" fill="white"/>
           </svg>
         </div>
-        <span className="text-xl font-bold text-[#0f1f3d]" style={{ fontFamily: 'serif' }}>Landlordly</span>
+        <span className="text-xl font-bold text-[#0f1f3d]" style={{ fontFamily: 'serif' }}>Tenurly</span>
       </div>
 
       <div className="w-full max-w-md">

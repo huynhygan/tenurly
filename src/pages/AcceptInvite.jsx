@@ -15,7 +15,7 @@ const Logo = () => (
         <circle cx="9" cy="11.5" r="1.5" fill="white"/>
       </svg>
     </div>
-    <span className="text-xl font-bold text-[#0f1f3d]">Landlordly</span>
+    <span className="text-xl font-bold text-[#0f1f3d]">Tenurly</span>
   </div>
 );
 
@@ -78,9 +78,9 @@ export default function AcceptInvite() {
     return wrap(
       <div className="text-center space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#0f1f3d]">You've been invited to Landlordly</h1>
+          <h1 className="text-2xl font-bold text-[#0f1f3d]">You've been invited to Tenurly</h1>
           <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-            Landlordly connects you with your landlord. You'll use it to view your rent, lodge repairs, and access your documents.
+            Tenurly connects you with your landlord. You'll use it to view your rent, lodge repairs, and access your documents.
           </p>
         </div>
         <div className="bg-[#e8f7f3] rounded-2xl p-4 text-sm text-left space-y-2">
@@ -154,7 +154,7 @@ export default function AcceptInvite() {
       <Logo />
       <Card className="max-w-sm w-full p-8 space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-[#0f1f3d]">You've been invited to Landlordly</h1>
+          <h1 className="text-2xl font-bold text-[#0f1f3d]">You've been invited to Tenurly</h1>
           <p className="text-sm text-slate-500 leading-relaxed">
             Your landlord has set up your tenancy. Accept below to get access to your rent history, repairs, and documents.
           </p>
