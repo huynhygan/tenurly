@@ -75,12 +75,13 @@ export default function LandlordDashboard() {
             <span className="font-bold text-base text-[#0f1f3d]">🏠 Tenurly</span>
             <nav className="hidden md:flex items-center gap-1">
               {[
-                { label: "Overview",    to: "/dashboard" },
-                { label: "Properties",  to: "/properties" },
-                { label: "Maintenance", to: "/maintenance" },
-                { label: "Finances",    to: "/properties" },
-                { label: "Messages",    to: "/messages" },
-                { label: "Documents",   to: "/properties" },
+                { label: "Overview",        to: "/dashboard" },
+                { label: "Properties",      to: "/properties" },
+                { label: "Maintenance",     to: "/maintenance" },
+                { label: "Finances",        to: "/properties" },
+                { label: "Messages",        to: "/messages" },
+                { label: "Lease renewals",  to: "/lease-expiry" },
+                { label: "Reports & tax",   to: "/reports" },
               ].map(link => (
                 <Link
                   key={link.label}
