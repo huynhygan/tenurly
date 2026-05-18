@@ -41,7 +41,7 @@ const faqs = [
   { q: 'Is there a free trial?', a: 'Yes — Growth and Portfolio plans include a 14-day free trial. No credit card required.' },
   { q: 'Can I manage multiple properties?', a: 'Yes — the Growth plan supports up to 10 properties, Portfolio is unlimited.' },
   { q: 'What if I cancel?', a: 'You can cancel anytime. Your data is retained for 90 days.' },
-  { q: 'Do my tenants need to pay?', a: 'Never. Tenants use Landlordly for free.' },
+  { q: 'Do my tenants need to pay?', a: 'Never. Tenants use Tenurly for free.' },
 ];
 
 function FaqItem({ q, a }) {
@@ -127,7 +127,7 @@ export default function Pricing() {
         {/* Tenants note */}
         <div className="text-center mb-10 bg-white/6 rounded-2xl py-4 px-6">
           <p className="text-white/70 text-sm">
-            <span className="text-[#0d9e7e] font-semibold">Tenants are always free</span> — your tenants never pay anything to use Landlordly.
+            <span className="text-[#0d9e7e] font-semibold">Tenants are always free</span> — your tenants never pay anything to use Tenurly.
           </p>
         </div>
 

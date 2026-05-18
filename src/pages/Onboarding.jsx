@@ -70,11 +70,11 @@ export default function Onboarding() {
             </svg>
           </div>
           <span style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: "1.6rem", color: "#0f1f3d" }}>
-            Landlordly
+            Tenurly
           </span>
         </div>
         <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>
-          Smart property management for everyone involved
+          Smart property management for self-managed landlords and their tenants.
         </p>
       </div>
 
@@ -294,7 +294,7 @@ export default function Onboarding() {
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
-          Your data is private and encrypted. Landlordly never shares your information with third parties, advertisers, or real estate agents.
+          Your data is private and encrypted. Tenurly never shares your information with third parties, advertisers, or real estate agents.
         </div>
       </div>
 
