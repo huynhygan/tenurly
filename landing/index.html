@@ -1,1 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tenurly — Self-Managed Property, Sorted</title>
+  <meta name="description" content="Tenurly — smart, simple property management for self-managed landlords. Track rent, handle maintenance, and stay connected with tenants. Free to start." />
 
+  <!-- !! REPLACE THIS with your real domain before going live !! -->
+  <link rel="canonical" href="https://tenurly.app/" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+    /* ─── TOKENS ───────────────────────────────────── */
+    :root {
+      --navy:      #0f1f3d;
+      --navy-mid:  #1a3460;
+      --navy-deep: #0a1628;
+      --teal:      #0d9e7e;
+      --teal-dark: #0b8a6e;
+      --teal-pale: #e8f7f3;
+      --white:     #ffffff;
+      --slate-50:  #f8faff;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-700: #334155;
+      --amber:     #fbbf24;
+      --serif: 'DM Serif Display', Georgia, serif;
+      --sans:  'DM Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      font-family: var(--sans);
+      color: var(--slate-700);
+      background: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ─── AUTH URL — update this one constant ──────── */
+    /* Search for AUTH_URL in JS below to swap in your real login link */
+
+    /* ─── UTILITIES ────────────────────────────────── */
+    .serif { font-family: var(--serif); }
+    .sans  { font-family: var(--sans);  }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+    .container--sm { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+    .container--md { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    /* ─── ANIMATIONS ───────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-6px); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .anim-fade-up   { animation: fadeUp 0.7s ease forwards; }
+    .anim-delay-1   { animation-delay: 0.1s; opacity: 0; }
+    .anim-delay-2   { animation-delay: 0.2s; opacity: 0; }
+    .anim-delay-3   { animation-delay: 0.35s; opacity: 0; }
+    .anim-delay-4   { animation-delay: 0.5s; opacity: 0; }
+
+    /* ─── NAV ──────────────────────────────────────── */
+    #nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--navy);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      transition: box-shadow 0.3s;
+    }
+    #nav.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,0.35); }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .nav-logo { height: 24px; display: block; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+    .nav-links a, .nav-links button {
+      background: none; border: none; cursor: pointer;
+      font-family: var(--sans); font-size: 14px; font-weight: 500;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links button:hover { color: var(--white); }
+
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .btn-ghost {
+      font-family: var(--sans); font-size: 14px; font-weight: 500;
+      color: rgba(255,255,255,0.55); background: none; border: none;
+      cursor: pointer; padding: 8px 12px; border-radius: 8px;
+      transition: color 0.2s, background 0.2s; text-decoration: none;
+    }
+    .btn-ghost:hover { color: var(--white); background: rgba(255,255,255,0.08); }
+
+    .btn-primary {
+      font-family: var(--sans); font-size: 14px; font-weight: 600;
+      background: var(--teal); color: var(--white);
+      border: none; cursor: pointer;
+      padding: 10px 18px; border-radius: 12px;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary:hover { background: var(--teal-dark); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-primary--lg {
+      font-size: 16px; font-weight: 700;
+      padding: 16px 32px; border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(13,158,126,0.3);
+    }
+    .btn-primary--lg:hover { box-shadow: 0 12px 40px rgba(13,158,126,0.45); }
+
+    .btn-outline {
+      font-family: var(--sans); font-size: 16px; font-weight: 500;
+      background: transparent; color: rgba(255,255,255,0.75);
+      border: 1.5px solid rgba(255,255,255,0.2); cursor: pointer;
+      padding: 15px 32px; border-radius: 16px;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.08); color: var(--white); border-color: rgba(255,255,255,0.4); }
+
+    /* Hamburger */
+    .nav-hamburger {
+      display: none; background: none; border: none; cursor: pointer;
+      flex-direction: column; gap: 5px; padding: 4px;
+    }
+    .nav-hamburger span {
+      display: block; width: 22px; height: 2px;
+      background: rgba(255,255,255,0.7); border-radius: 2px;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .nav-mobile {
+      display: none; flex-direction: column; gap: 0;
+      background: var(--navy-deep); border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav-mobile.open { display: flex; }
+    .nav-mobile a, .nav-mobile button {
+      font-family: var(--sans); font-size: 15px; font-weight: 500;
+      color: rgba(255,255,255,0.65); background: none; border: none;
+      cursor: pointer; text-decoration: none;
+      padding: 16px 24px; text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-mobile a:hover, .nav-mobile button:hover { color: var(--white); background: rgba(255,255,255,0.04); }
+    .nav-mobile .mobile-cta { color: var(--teal) !important; font-weight: 700 !important; }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .btn-ghost  { display: none; }
+      .nav-hamburger { display: flex; }
+    }
+
+    /* ─── HERO ─────────────────────────────────────── */
+    #hero {
+      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 55%, #0d2e4a 100%);
+      padding: 96px 24px 112px;
+      position: relative;
+      overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(13,158,126,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    /* Subtle dot grid */
+    #hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    .hero-inner { position: relative; z-index: 1; text-align: center; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid rgba(13,158,126,0.4);
+      color: var(--teal); font-size: 12px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 8px 18px; border-radius: 100px; margin-bottom: 32px;
+      background: rgba(13,158,126,0.08);
+    }
+    .hero-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--teal); animation: float 2s ease-in-out infinite;
+    }
+
+    .hero-h1 {
+      font-family: var(--serif);
+      font-size: clamp(38px, 6vw, 64px);
+      font-weight: 400; line-height: 1.1;
+      color: var(--white); margin-bottom: 24px;
+    }
+    .hero-h1 em { font-style: italic; color: var(--teal); }
+
+    .hero-sub {
+      font-size: clamp(15px, 2vw, 18px); font-weight: 400;
+      color: rgba(255,255,255,0.58); line-height: 1.65;
+      max-width: 580px; margin: 0 auto 40px;
+    }
+
+    .hero-ctas {
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: center; gap: 12px; margin-bottom: 32px;
+    }
+
+    .hero-trust {
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: center; gap: 20px;
+      font-size: 12px; color: rgba(255,255,255,0.35);
+    }
+    .hero-trust-sep { color: rgba(255,255,255,0.15); }
+
+    /* ─── TWO SIDES ────────────────────────────────── */
+    #two-sides { padding: 80px 0; background: var(--white); }
+
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--teal);
+      margin-bottom: 12px;
+    }
+    .section-h2 {
+      font-family: var(--serif); font-weight: 400;
+      font-size: clamp(26px, 4vw, 42px);
+      color: var(--navy); margin-bottom: 12px; line-height: 1.15;
+    }
+    .section-sub {
+      font-size: 14px; color: var(--slate-500); max-width: 480px;
+      margin: 0 auto; line-height: 1.6;
+    }
+
+    .section-header { text-align: center; margin-bottom: 52px; }
+
+    .two-sides-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;
+    }
+    @media (max-width: 680px) { .two-sides-grid { grid-template-columns: 1fr; } }
+
+    .side-card { border-radius: 20px; border: 1px solid var(--slate-200); overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+
+    .side-card-header { padding: 28px 32px 24px; }
+    .side-card-header--navy { background: var(--navy); }
+    .side-card-header--teal { background: var(--teal); }
+
+    .side-card-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .side-card-label--navy { color: rgba(255,255,255,0.38); }
+    .side-card-label--teal { color: rgba(255,255,255,0.55); }
+
+    .side-card-title {
+      font-family: var(--serif); font-size: 22px; font-weight: 400;
+      color: var(--white); margin-bottom: 8px;
+    }
+    .side-card-desc {
+      font-size: 13px; line-height: 1.6;
+    }
+    .side-card-desc--navy { color: rgba(255,255,255,0.48); }
+    .side-card-desc--teal { color: rgba(255,255,255,0.72); }
+
+    .side-card-body { background: var(--white); padding: 28px 32px; }
+
+    .feature-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .feature-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--slate-700); }
+    .check-icon {
+      width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px;
+      color: var(--teal);
+    }
+
+    .btn-card-navy {
+      width: 100%; padding: 14px; border-radius: 12px;
+      background: var(--navy); color: var(--white);
+      border: none; cursor: pointer; font-family: var(--sans);
+      font-size: 14px; font-weight: 600;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none; display: block; text-align: center;
+    }
+    .btn-card-navy:hover { background: var(--navy-mid); transform: translateY(-1px); }
+
+    .btn-card-teal-outline {
+      width: 100%; padding: 13px; border-radius: 12px;
+      background: transparent; color: var(--teal);
+      border: 2px solid var(--teal); cursor: pointer; font-family: var(--sans);
+      font-size: 14px; font-weight: 600;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none; display: block; text-align: center;
+    }
+    .btn-card-teal-outline:hover { background: rgba(13,158,126,0.06); transform: translateY(-1px); }
+
+    .tenant-note {
+      background: var(--teal-pale); border: 1px solid rgba(13,158,126,0.2);
+      border-radius: 16px; padding: 20px 24px;
+      display: flex; align-items: flex-start; gap: 16px;
+    }
+    .tenant-note-emoji { font-size: 22px; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+    .tenant-note-title { font-weight: 700; font-size: 14px; color: var(--navy); margin-bottom: 5px; }
+    .tenant-note-body { font-size: 13px; color: var(--slate-500); line-height: 1.6; }
+
+    /* ─── FEATURES ─────────────────────────────────── */
+    #features { padding: 80px 0; background: var(--slate-50); }
+
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    @media (max-width: 860px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 540px) { .features-grid { grid-template-columns: 1fr; } }
+
+    .feature-card {
+      background: var(--white); border-radius: 18px;
+      border: 1px solid rgba(0,0,0,0.06); padding: 24px;
+      transition: box-shadow 0.25s, transform 0.25s;
+    }
+    .feature-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.09); transform: translateY(-3px); }
+
+    .feature-card-emoji { font-size: 28px; margin-bottom: 16px; }
+    .feature-card-title { font-weight: 700; font-size: 15px; color: var(--navy); margin-bottom: 8px; }
+    .feature-card-desc  { font-size: 13px; color: var(--slate-500); line-height: 1.65; }
+
+    /* ─── HOW IT WORKS ─────────────────────────────── */
+    #how-it-works { padding: 80px 0; background: var(--white); }
+
+    .steps { display: flex; flex-direction: column; gap: 16px; position: relative; }
+    .steps::before {
+      content: '';
+      position: absolute; left: 19px; top: 40px;
+      width: 2px; height: calc(100% - 80px);
+      background: var(--slate-100);
+    }
+    @media (max-width: 560px) { .steps::before { display: none; } }
+
+    .step { display: flex; align-items: flex-start; gap: 20px; }
+    .step-num {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--navy); color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; flex-shrink: 0;
+      position: relative; z-index: 1;
+    }
+    .step-body {
+      background: var(--slate-50); border: 1px solid var(--slate-100);
+      border-radius: 16px; padding: 20px 24px; flex: 1;
+    }
+    .step-title { font-weight: 700; font-size: 15px; color: var(--navy); margin-bottom: 5px; }
+    .step-desc  { font-size: 13px; color: var(--slate-500); line-height: 1.6; }
+
+    /* ─── STATS STRIP ──────────────────────────────── */
+    #stats { padding: 60px 0; background: var(--navy); }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    }
+    @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-card {
+      text-align: center; padding: 28px 16px;
+      background: rgba(255,255,255,0.05); border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .stat-value {
+      font-family: var(--serif); font-size: 36px; font-weight: 400;
+      color: var(--teal); margin-bottom: 8px;
+    }
+    .stat-label { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+
+    /* ─── PRICING ──────────────────────────────────── */
+    #pricing { padding: 80px 0; background: var(--navy); }
+
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;
+    }
+    @media (max-width: 860px) { .pricing-grid { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; } }
+
+    .plan-card {
+      border-radius: 20px; padding: 28px 24px;
+      display: flex; flex-direction: column; gap: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      position: relative; transition: transform 0.2s;
+    }
+    .plan-card:hover { transform: translateY(-4px); }
+    .plan-card--featured {
+      border: 2px solid var(--teal);
+      background: rgba(255,255,255,0.09);
+    }
+
+    .plan-badge {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--teal); color: var(--white);
+      font-size: 11px; font-weight: 700; padding: 5px 16px;
+      border-radius: 100px; white-space: nowrap; letter-spacing: 0.04em;
+    }
+
+    .plan-name {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: rgba(255,255,255,0.38); margin-bottom: 10px;
+    }
+    .plan-price {
+      display: flex; align-items: flex-end; gap: 4px; margin-bottom: 4px;
+    }
+    .plan-price-value {
+      font-family: var(--serif); font-size: 36px; color: var(--white); line-height: 1;
+    }
+    .plan-price-sub { font-size: 13px; color: rgba(255,255,255,0.38); margin-bottom: 4px; }
+    .plan-desc { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.55; }
+
+    .plan-divider { height: 1px; background: rgba(255,255,255,0.1); }
+
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .plan-features li {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: rgba(255,255,255,0.72);
+    }
+    .plan-features li.dimmed { color: rgba(255,255,255,0.2); }
+    .plan-check { width: 13px; height: 13px; flex-shrink: 0; color: var(--teal); }
+    .plan-check.dimmed { color: rgba(255,255,255,0.15); }
+
+    .btn-plan-primary {
+      width: 100%; padding: 13px; border-radius: 12px;
+      background: var(--teal); color: var(--white);
+      border: none; cursor: pointer; font-family: var(--sans);
+      font-size: 13px; font-weight: 600;
+      transition: background 0.2s; text-decoration: none;
+      display: block; text-align: center;
+    }
+    .btn-plan-primary:hover { background: var(--teal-dark); }
+
+    .btn-plan-outline {
+      width: 100%; padding: 12px; border-radius: 12px;
+      background: transparent; color: var(--white);
+      border: 1px solid rgba(255,255,255,0.2); cursor: pointer; font-family: var(--sans);
+      font-size: 13px; font-weight: 600;
+      transition: background 0.2s; text-decoration: none;
+      display: block; text-align: center;
+    }
+    .btn-plan-outline:hover { background: rgba(255,255,255,0.08); }
+
+    .pricing-note {
+      text-align: center; padding: 16px 24px;
+      background: rgba(255,255,255,0.05); border-radius: 14px;
+    }
+    .pricing-note span { color: var(--teal); font-weight: 600; }
+    .pricing-note p { color: rgba(255,255,255,0.5); font-size: 13px; }
+
+    /* ─── TESTIMONIALS ─────────────────────────────── */
+    #testimonials { padding: 80px 0; background: var(--white); }
+
+    .testimonials-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    @media (max-width: 860px) { .testimonials-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    .testimonial-card {
+      background: var(--slate-50); border: 1px solid var(--slate-100);
+      border-radius: 18px; padding: 24px;
+    }
+    .stars { display: flex; gap: 2px; margin-bottom: 16px; }
+    .star { color: var(--amber); font-size: 13px; }
+    .testimonial-quote {
+      font-size: 13px; color: var(--slate-700); line-height: 1.7;
+      margin-bottom: 20px; font-style: italic;
+    }
+    .testimonial-author { display: flex; align-items: center; gap: 10px; }
+    .author-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(13,158,126,0.15);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--teal); flex-shrink: 0;
+    }
+    .author-name { font-size: 12px; font-weight: 700; color: var(--navy); }
+    .author-role { font-size: 11px; color: var(--slate-400); }
+
+    /* ─── FINAL CTA ────────────────────────────────── */
+    #final-cta {
+      padding: 96px 24px;
+      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 55%, #0d2e4a 100%);
+      text-align: center; position: relative; overflow: hidden;
+    }
+    #final-cta::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 50% 100%, rgba(13,158,126,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .final-cta-inner { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; }
+    .final-cta-h2 {
+      font-family: var(--serif); font-size: clamp(30px, 5vw, 52px);
+      font-weight: 400; color: var(--white); margin-bottom: 16px; line-height: 1.15;
+    }
+    .final-cta-sub { font-size: 15px; color: rgba(255,255,255,0.5); margin-bottom: 40px; line-height: 1.6; }
+    .final-cta-privacy {
+      display: flex; align-items: flex-start; justify-content: center;
+      gap: 8px; font-size: 11px; color: rgba(255,255,255,0.28);
+      margin-top: 24px; max-width: 380px; margin-left: auto; margin-right: auto;
+    }
+
+    /* ─── FOOTER ───────────────────────────────────── */
+    footer {
+      background: var(--navy-deep); padding: 40px 24px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .footer-inner {
+      max-width: 1080px; margin: 0 auto;
+      display: flex; flex-direction: column; gap: 32px;
+    }
+    .footer-top {
+      display: flex; flex-wrap: wrap; align-items: flex-start;
+      justify-content: space-between; gap: 24px;
+    }
+    .footer-logo { height: 22px; margin-bottom: 12px; display: block; }
+    .footer-tagline { font-size: 13px; color: rgba(255,255,255,0.38); max-width: 280px; line-height: 1.6; }
+    .footer-nav { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+    .footer-nav a, .footer-nav button {
+      font-family: var(--sans); font-size: 13px; color: rgba(255,255,255,0.38);
+      text-decoration: none; background: none; border: none; cursor: pointer;
+      transition: color 0.2s;
+    }
+    .footer-nav a:hover, .footer-nav button:hover { color: var(--white); }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;
+      text-align: center; font-size: 11px; color: rgba(255,255,255,0.18);
+    }
+
+    /* ─── SCROLL REVEAL ────────────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ─── FAQ ──────────────────────────────────────── */
+    .faq-item { border-bottom: 1px solid var(--slate-100); }
+    .faq-btn {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0; gap: 16px; background: none; border: none; cursor: pointer;
+      font-family: var(--sans); font-size: 14px; font-weight: 600;
+      color: var(--navy); text-align: left;
+    }
+    .faq-icon {
+      width: 20px; height: 20px; flex-shrink: 0;
+      color: var(--slate-400); transition: transform 0.25s;
+    }
+    .faq-item.open .faq-icon { transform: rotate(45deg); }
+    .faq-answer {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.35s ease, padding 0.25s ease;
+    }
+    .faq-answer p {
+      font-size: 13px; color: var(--slate-500); line-height: 1.7;
+      padding-bottom: 20px;
+    }
+    .faq-item.open .faq-answer { max-height: 200px; }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAV ──────────────────────────────────────────── -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <!-- Logo: using SVG wordmark fallback since we can't load Base44 CDN assets -->
+      <a href="/" aria-label="Tenurly home">
+        <svg height="24" viewBox="0 0 120 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="nav-logo">
+          <rect x="0" y="4" width="20" height="20" rx="5" fill="#0d9e7e"/>
+          <rect x="5" y="9" width="10" height="1.8" rx="0.9" fill="white"/>
+          <rect x="5" y="13.1" width="10" height="1.8" rx="0.9" fill="white"/>
+          <rect x="5" y="17.2" width="6" height="1.8" rx="0.9" fill="white"/>
+          <text x="28" y="21" font-family="DM Serif Display, Georgia, serif" font-size="18" fill="white" font-weight="400">Tenurly</text>
+        </svg>
+      </a>
+
+      <ul class="nav-links">
+        <li><button onclick="scrollTo('features')">Features</button></li>
+        <li><button onclick="scrollTo('how-it-works')">How it works</button></li>
+        <li><button onclick="scrollTo('pricing')">Pricing</button></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="#LOGIN_URL" class="btn-ghost">Sign in</a>
+        <a href="#SIGNUP_URL" class="btn-primary">Get started free</a>
+      </div>
+
+      <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <div class="nav-mobile" id="mobile-menu">
+      <button onclick="scrollTo('features'); closeMobile()">Features</button>
+      <button onclick="scrollTo('how-it-works'); closeMobile()">How it works</button>
+      <button onclick="scrollTo('pricing'); closeMobile()">Pricing</button>
+      <a href="#LOGIN_URL" class="mobile-cta">Sign in →</a>
+      <a href="#SIGNUP_URL" class="mobile-cta">Get started free →</a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ─────────────────────────────────────────── -->
+  <section id="hero">
+    <div class="hero-inner container">
+      <div class="hero-badge anim-fade-up anim-delay-1">
+        <span class="hero-badge-dot"></span>
+        Built for self-managed landlords
+      </div>
+      <h1 class="hero-h1 anim-fade-up anim-delay-2">
+        Property management that<br>
+        <em>actually makes sense</em>
+      </h1>
+      <p class="hero-sub anim-fade-up anim-delay-3">
+        Track rent, handle maintenance, and stay connected with tenants — without paying a property manager. Everything you need, nothing you don't.
+      </p>
+      <div class="hero-ctas anim-fade-up anim-delay-4">
+        <a href="#SIGNUP_URL" class="btn-primary btn-primary--lg">
+          Start managing for free
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <button class="btn-outline" onclick="scrollTo('how-it-works')">See how it works</button>
+      </div>
+      <div class="hero-trust anim-fade-up anim-delay-4">
+        <span>No credit card required</span>
+        <span class="hero-trust-sep">·</span>
+        <span>Free plan available</span>
+        <span class="hero-trust-sep">·</span>
+        <span>Cancel anytime</span>
+        <span class="hero-trust-sep">·</span>
+        <span>Australian landlords welcome</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TWO SIDES ────────────────────────────────────── -->
+  <section id="two-sides">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">Two sides, one platform</p>
+        <h2 class="section-h2">Are you a landlord or a tenant?</h2>
+        <p class="section-sub">Tenurly works for both sides of a tenancy — your role determines what you see.</p>
+      </div>
+
+      <div class="two-sides-grid">
+        <!-- Landlord -->
+        <div class="side-card reveal reveal-delay-1">
+          <div class="side-card-header side-card-header--navy">
+            <p class="side-card-label side-card-label--navy">For Landlords</p>
+            <h3 class="side-card-title">You're in control</h3>
+            <p class="side-card-desc side-card-desc--navy">Manage your properties, invite tenants, and keep everything organised — without an agent eating into your returns.</p>
+          </div>
+          <div class="side-card-body">
+            <ul class="feature-list">
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Add properties and rooms, track every tenancy
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Automated rent ledger and payment reminders
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Maintenance request dashboard with job tracking
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Expense tracking linked to each property
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Lease expiry alerts so you're never caught off-guard
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Tax-ready financial reports
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Documents vault — leases, inspection reports, receipts
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Invite tenants in 30 seconds via email
+              </li>
+            </ul>
+            <a href="#SIGNUP_URL" class="btn-card-navy">Set up your properties →</a>
+          </div>
+        </div>
+
+        <!-- Tenant -->
+        <div class="side-card reveal reveal-delay-2">
+          <div class="side-card-header side-card-header--teal">
+            <p class="side-card-label side-card-label--teal">For Tenants</p>
+            <h3 class="side-card-title">Everything you need, at a glance</h3>
+            <p class="side-card-desc side-card-desc--teal">Your landlord invited you to Tenurly. Here's what you get — a simple, clear view of your tenancy.</p>
+          </div>
+          <div class="side-card-body">
+            <ul class="feature-list">
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                See your rent status and full payment history
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Lodge repair or maintenance requests with photos
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Track request status — no more texting into a void
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Download your lease and important documents anytime
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Chat with your landlord or housemates directly
+              </li>
+              <li>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Receive notifications for important updates
+              </li>
+            </ul>
+            <a href="#ACCEPT_INVITE_URL" class="btn-card-teal-outline">Access your tenancy →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tenant explainer -->
+      <div class="tenant-note reveal">
+        <span class="tenant-note-emoji">🔑</span>
+        <div>
+          <p class="tenant-note-title">Tenants — how do I sign up?</p>
+          <p class="tenant-note-body">You don't sign up directly. Your landlord sends you an invite link via email. Clicking it creates your account and connects you to your tenancy automatically. Your data is private — only you and your landlord can see it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES ──────────────────────────────────────── -->
+  <section id="features">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">What's included</p>
+        <h2 class="section-h2">Everything self-managed landlords need</h2>
+        <p class="section-sub">No bloat. No features you'll never use. Just the core stuff that saves you time and avoids headaches.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="feature-card-emoji">💰</div>
+          <p class="feature-card-title">Rent tracking</p>
+          <p class="feature-card-desc">Full ledger of every payment, charge and balance. Know exactly who's paid and who's behind — at a glance.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="feature-card-emoji">🔧</div>
+          <p class="feature-card-title">Maintenance management</p>
+          <p class="feature-card-desc">Tenants log issues, you track progress. From submitted to resolved — every job has a status and a trail.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="feature-card-emoji">📄</div>
+          <p class="feature-card-title">Documents vault</p>
+          <p class="feature-card-desc">Leases, inspections, invoices — stored securely against each property. Accessible by landlord and tenant.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="feature-card-emoji">⏰</div>
+          <p class="feature-card-title">Lease expiry alerts</p>
+          <p class="feature-card-desc">Get reminded 60 days before lease end. Never be caught scrambling for a renewal at the last minute.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="feature-card-emoji">📊</div>
+          <p class="feature-card-title">Expense &amp; tax reports</p>
+          <p class="feature-card-desc">Track every property expense and download tax-ready summaries when EOFY rolls around.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="feature-card-emoji">💬</div>
+          <p class="feature-card-title">Built-in messaging</p>
+          <p class="feature-card-desc">Chat with individual tenants or the whole household. Everything logged — no more lost SMS threads.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STATS ─────────────────────────────────────────── -->
+  <section id="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-card reveal reveal-delay-1">
+          <p class="stat-value">$0</p>
+          <p class="stat-label">Agent fees per week. Self-manage and keep it.</p>
+        </div>
+        <div class="stat-card reveal reveal-delay-2">
+          <p class="stat-value">5 min</p>
+          <p class="stat-label">Average time to add a property and invite a tenant.</p>
+        </div>
+        <div class="stat-card reveal reveal-delay-3">
+          <p class="stat-value">100%</p>
+          <p class="stat-label">Private — your data stays yours. No third-party selling.</p>
+        </div>
+        <div class="stat-card reveal reveal-delay-4">
+          <p class="stat-value">24/7</p>
+          <p class="stat-label">Tenants can lodge maintenance requests any time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ──────────────────────────────────── -->
+  <section id="how-it-works" style="padding: 80px 0; background: white;">
+    <div class="container--sm">
+      <div class="section-header reveal">
+        <p class="section-label">Getting started</p>
+        <h2 class="section-h2">Up and running in minutes</h2>
+        <p class="section-sub">Setting up takes less time than a call to a property manager.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal reveal-delay-1">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <p class="step-title">Create your account</p>
+            <p class="step-desc">Sign up as a landlord — free, no credit card. Takes about 30 seconds.</p>
+          </div>
+        </div>
+        <div class="step reveal reveal-delay-2">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <p class="step-title">Add your property</p>
+            <p class="step-desc">Enter your property address and rooms. Multi-property portfolios are fully supported.</p>
+          </div>
+        </div>
+        <div class="step reveal reveal-delay-3">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <p class="step-title">Invite your tenant</p>
+            <p class="step-desc">Enter their email and hit send. They receive a link, create a free account, and they're connected automatically.</p>
+          </div>
+        </div>
+        <div class="step reveal reveal-delay-4">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <p class="step-title">Set up rent tracking</p>
+            <p class="step-desc">Add the weekly or monthly rent amount, start date, and payment schedule. Tenurly starts tracking from day one.</p>
+          </div>
+        </div>
+        <div class="step reveal reveal-delay-5">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <p class="step-title">You're managing</p>
+            <p class="step-desc">Your dashboard shows everything — rent status, open maintenance jobs, lease dates, and messages. No property manager required.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRICING ───────────────────────────────────────── -->
+  <section id="pricing">
+    <div class="container">
+      <div class="section-header reveal" style="color: white;">
+        <p class="section-label" style="color: rgba(255,255,255,0.4);">Simple pricing</p>
+        <h2 class="section-h2" style="color: white;">Pay for what you manage</h2>
+        <p class="section-sub" style="color: rgba(255,255,255,0.5);">Start free. Scale as your portfolio grows. Tenants are always free.</p>
+      </div>
+      <div class="pricing-grid">
+        <!-- Starter -->
+        <div class="plan-card reveal reveal-delay-1">
+          <div>
+            <p class="plan-name">Starter</p>
+            <div class="plan-price">
+              <span class="plan-price-value">Free</span>
+              <span class="plan-price-sub">forever</span>
+            </div>
+            <p class="plan-desc">For landlords just getting started with 1 property.</p>
+          </div>
+          <div class="plan-divider"></div>
+          <ul class="plan-features">
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>1 property</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Up to 3 tenants</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Rent ledger &amp; tracking</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Maintenance requests</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Document storage</li>
+            <li class="dimmed"><svg class="plan-check dimmed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Financial reports</li>
+            <li class="dimmed"><svg class="plan-check dimmed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Priority support</li>
+          </ul>
+          <a href="#SIGNUP_URL" class="btn-plan-outline">Get started free</a>
+        </div>
+
+        <!-- Growth (featured) -->
+        <div class="plan-card plan-card--featured reveal reveal-delay-2">
+          <span class="plan-badge">Most popular</span>
+          <div style="padding-top: 8px;">
+            <p class="plan-name">Growth</p>
+            <div class="plan-price">
+              <span class="plan-price-value">$19</span>
+              <span class="plan-price-sub">/ month</span>
+            </div>
+            <p class="plan-desc">For landlords with a growing portfolio of up to 10 properties.</p>
+          </div>
+          <div class="plan-divider"></div>
+          <ul class="plan-features">
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Up to 10 properties</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Unlimited tenants</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Rent ledger &amp; tracking</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Maintenance requests</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Document storage</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Financial reports &amp; tax export</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Lease expiry alerts</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>All messaging features</li>
+          </ul>
+          <a href="#SIGNUP_URL" class="btn-plan-primary">Start free 14-day trial</a>
+        </div>
+
+        <!-- Portfolio -->
+        <div class="plan-card reveal reveal-delay-3">
+          <div>
+            <p class="plan-name">Portfolio</p>
+            <div class="plan-price">
+              <span class="plan-price-value">$49</span>
+              <span class="plan-price-sub">/ month</span>
+            </div>
+            <p class="plan-desc">For serious landlords managing large or complex portfolios.</p>
+          </div>
+          <div class="plan-divider"></div>
+          <ul class="plan-features">
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Unlimited properties</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Unlimited tenants</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Everything in Growth</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Priority support</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Advanced reporting</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Trust &amp; entity support</li>
+            <li><svg class="plan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Bulk operations</li>
+          </ul>
+          <a href="#CONTACT_URL" class="btn-plan-outline">Contact us</a>
+        </div>
+      </div>
+      <div class="pricing-note reveal">
+        <p><span>Tenants are always free</span> — your tenants never pay to use Tenurly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TESTIMONIALS ──────────────────────────────────── -->
+  <section id="testimonials">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">Why landlords choose us</p>
+        <h2 class="section-h2">Built by landlords, for landlords</h2>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card reveal reveal-delay-1">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-quote">"Finally something that doesn't feel like it was built for a property management company. It's clean, it works, and my tenants actually use it."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">M</div>
+            <div>
+              <p class="author-name">Michael T.</p>
+              <p class="author-role">4 properties · Brisbane QLD</p>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal reveal-delay-2">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-quote">"I was tracking everything in a spreadsheet. Tenurly took maybe an hour to set up and I haven't touched the spreadsheet since."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">S</div>
+            <div>
+              <p class="author-name">Sarah K.</p>
+              <p class="author-role">2 properties · Melbourne VIC</p>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal reveal-delay-3">
+          <div class="stars">★★★★★</div>
+          <p class="testimonial-quote">"As a tenant, I love being able to see my payment history and submit repairs without having to chase anyone down."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">J</div>
+            <div>
+              <p class="author-name">James R.</p>
+              <p class="author-role">Tenant · Sydney NSW</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ──────────────────────────────────────────── -->
+  <section style="padding: 60px 0; background: var(--slate-50);">
+    <div class="container--md">
+      <div class="section-header reveal">
+        <p class="section-label">Common questions</p>
+        <h2 class="section-h2">FAQ</h2>
+      </div>
+      <div id="faq" class="reveal">
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFaq(this)">
+            Is there a free trial?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-answer"><p>Yes — Growth and Portfolio plans include a 14-day free trial. No credit card required to start.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFaq(this)">
+            Can I manage multiple properties?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-answer"><p>Yes — the Growth plan supports up to 10 properties. Portfolio is unlimited.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFaq(this)">
+            What if I cancel?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-answer"><p>You can cancel anytime. Your data is retained for 90 days after cancellation.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFaq(this)">
+            Do my tenants need to pay?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-answer"><p>Never. Tenants use Tenurly completely free.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFaq(this)">
+            Is my data secure?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-answer"><p>Yes — all data is encrypted and private. We never share your information with real estate agents, advertisers, or any third parties.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FINAL CTA ─────────────────────────────────────── -->
+  <section id="final-cta">
+    <div class="final-cta-inner">
+      <h2 class="final-cta-h2 reveal">Ready to self-manage, properly?</h2>
+      <p class="final-cta-sub reveal">Join landlords who've ditched the spreadsheets and the agent fees. Your first property is free, forever.</p>
+      <a href="#SIGNUP_URL" class="btn-primary btn-primary--lg reveal">
+        Get started — it's free
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <div class="final-cta-privacy reveal">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Your data is private and encrypted. We don't sell to agents, advertisers, or anyone else. Your tenant information is yours.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ────────────────────────────────────────── -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div>
+          <svg height="22" viewBox="0 0 120 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="footer-logo">
+            <rect x="0" y="4" width="20" height="20" rx="5" fill="#0d9e7e"/>
+            <rect x="5" y="9" width="10" height="1.8" rx="0.9" fill="white"/>
+            <rect x="5" y="13.1" width="10" height="1.8" rx="0.9" fill="white"/>
+            <rect x="5" y="17.2" width="6" height="1.8" rx="0.9" fill="white"/>
+            <text x="28" y="21" font-family="DM Serif Display, Georgia, serif" font-size="18" fill="white" font-weight="400">Tenurly</text>
+          </svg>
+          <p class="footer-tagline">Smart, simple property management for self-managed landlords across Australia.</p>
+        </div>
+        <nav class="footer-nav">
+          <button onclick="scrollTo('pricing')">Pricing</button>
+          <a href="#SIGNUP_URL">Dashboard</a>
+          <a href="#ACCEPT_INVITE_URL">Tenant access</a>
+          <a href="#SIGNUP_URL">Sign up</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 Tenurly. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ── AUTH URLS — swap these when your auth is ready ── */
+    /* Search for #SIGNUP_URL, #LOGIN_URL, #ACCEPT_INVITE_URL, #CONTACT_URL */
+    /* and replace with your actual URLs throughout this file.               */
+    /* e.g. replace '#SIGNUP_URL' with 'https://app.tenurly.app/signup'     */
+
+    /* ── NAV SCROLL EFFECT ─────────────────────────────── */
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
+
+    /* ── SMOOTH SCROLL HELPER ──────────────────────────── */
+    function scrollTo(id) {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /* ── MOBILE MENU ───────────────────────────────────── */
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    hamburger.addEventListener('click', () => {
+      const isOpen = mobileMenu.classList.toggle('open');
+      hamburger.classList.toggle('open', isOpen);
+    });
+    function closeMobile() {
+      mobileMenu.classList.remove('open');
+      hamburger.classList.remove('open');
+    }
+
+    /* ── FAQ ACCORDION ─────────────────────────────────── */
+    function toggleFaq(btn) {
+      const item = btn.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      // Open clicked if wasn't open
+      if (!isOpen) item.classList.add('open');
+    }
+
+    /* ── SCROLL REVEAL ─────────────────────────────────── */
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    reveals.forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
