@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 560" width="500" height="560">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#0f2d5e"/>
+      <stop offset="100%" stop-color="#00c896"/>
+    </linearGradient>
+  </defs>
+
+  <!--
+    The house icon is a single path.
+    Shape analysis from image:
+    - Starts bottom-left with a large round corner
+    - Left wall goes up, then curves into the roof peak (like a rounded mountain)
+    - Roof peak is gently rounded at the top-centre
+    - Right side of roof slopes down, then a small notch for where chimney was (we remove it)
+    - Right wall goes straight down with a rounded bottom-right corner
+    - Bottom is flat with rounded corners both sides
+
+    The "t" letterform is cut out as white negative space:
+    - The arch of the left roof slope + the open left interior = the t-stem and crossbar
+    - Explicitly: a white T shape overlaid on top
+  -->
+
+  <!-- HOUSE SILHOUETTE — single filled path, no chimney -->
+  <path d="
+    M 100 390
+    Q 100 430 140 430
+    L 360 430
+    Q 400 430 400 390
+    L 400 230
+    Q 400 210 385 200
+    L 270 115
+    Q 255 105 250 105
+    Q 245 105 230 115
+    L 115 200
+    Q 100 210 100 230
+    Z
+  " fill="url(#g)"/>
+
+  <!-- T CUTOUT — white negative space forming the "t" letterform -->
+  <!-- Crossbar of T (horizontal) -->
+  <rect x="130" y="198" width="155" height="38" rx="8" fill="white"/>
+  <!-- Stem of T (vertical) — starts at crossbar top, goes to bottom -->
+  <rect x="163" y="198" width="58" height="210" rx="8" fill="white"/>
+
+  <!-- 2x2 WINDOW — top-right area of house body -->
+  <rect x="290" y="255" width="22" height="22" rx="4" fill="white" opacity="0.9"/>
+  <rect x="318" y="255" width="22" height="22" rx="4" fill="white" opacity="0.9"/>
+  <rect x="290" y="283" width="22" height="22" rx="4" fill="white" opacity="0.9"/>
+  <rect x="318" y="283" width="22" height="22" rx="4" fill="white" opacity="0.9"/>
+
+  <!-- WORDMARK -->
+  <text
+    x="250" y="498"
+    font-family="'DM Sans','Helvetica Neue',Arial,sans-serif"
+    font-size="76"
+    font-weight="700"
+    fill="#0f1f3d"
+    text-anchor="middle"
+    letter-spacing="-1"
+  >tenurly</text>
+
+  <!-- TAGLINE -->
+  <text
+    x="250" y="530"
+    font-family="'DM Sans','Helvetica Neue',Arial,sans-serif"
+    font-size="17"
+    font-weight="400"
+    fill="#64748b"
+    text-anchor="middle"
+  >Self-managed property management</text>
+  <text
+    x="250" y="552"
+    font-family="'DM Sans','Helvetica Neue',Arial,sans-serif"
+    font-size="17"
+    font-weight="400"
+    fill="#64748b"
+    text-anchor="middle"
+  >for landlords.</text>
+
+</svg>
